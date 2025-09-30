@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",                  // Phiên bản JS biên dịch ra (ES2020 trở lên)
+    "module": "CommonJS",                  // Hỗ trợ import/export dạng ES
+    "moduleResolution": "node",          // Cách tìm module trong Node.js
+    "esModuleInterop": true,              // Cho phép import default từ CommonJS
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,                       // Bật strict mode TypeScript
+    "skipLibCheck": true,                 // Bỏ qua kiểm tra *.d.ts để build nhanh hơn
+    "outDir": "dist",                    // Thư mục output sau khi build
+    "rootDir": "src",                    // Thư mục code nguồn
+    "resolveJsonModule": true             // Cho phép import file JSON
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
