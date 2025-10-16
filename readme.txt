@@ -12,12 +12,8 @@ Mở terminal tại thư mục `backend` và chạy: npm install
 
 ## 3. Cấu hình kết nối database
 
-Kiểm tra file `src/app.ts`:
+Kiểm tra file `src/db`:
 - Sửa thông tin user, password, server, port, database cho phù hợp với SQL Server của bạn.
-
-## 4. Biên dịch TypeScript
-
-- File biên dịch sẽ nằm trong thư mục `dist`.
 
 ## 5. Chạy server cd backend npm run start
 
