@@ -20,33 +20,18 @@ export default function Page() {
   const [param, setParam] = useState<{
     search: string | null;
     limit: number;
-    deCode: number | null;
     skip: number;
-    sortOrder: string;
-    sortBy: string;
   }>({
     search: null,
     limit: 10,
-    deCode: null,
     skip: 0,
-    sortOrder: "DESC",
-    sortBy: "TenKhoa",
   });
-  const dataOptions = [
-    { label: "Sắp xếp tăng dần theo tên", value: 1 },
-    { label: "Sắp xếp giảm dần theo tên", value: 2 },
-  ];
   // 🚀 Fetch API dựa trên URL query
   const fetchData = async () => {
     const search = searchParams.get("search") || null;
     const skip = parseInt(searchParams.get("skip") || "0");
     const limit = parseInt(searchParams.get("limit") || "10");
-    const deCode = searchParams.get("deCode")
-      ? parseInt(searchParams.get("deCode")!)
-      : null;
-    const sortBy = searchParams.get("sortBy") || "TenKhoa";
-    const sortOrder = searchParams.get("sortOrder") || "ASC";
-    setParam({ search, skip, limit, deCode, sortBy, sortOrder });
+    setParam({ search, skip, limit });
     setLoadingData(true);
     try {
       const res = await axios.get("http://localhost:4000/faculties", {
@@ -54,13 +39,9 @@ export default function Page() {
           search,
           limit,
           skip,
-          deCode,
-          sortBy: sortBy,
-          sortOrder: sortOrder,
         },
       });
-      setRecords(res.data.data);
-      setPagination(res.data.pagination);
+      setRecords(res.data);
     } catch (err) {
       alert("⚠️ Lỗi khi lấy dữ liệu report");
     } finally {
@@ -83,21 +64,6 @@ export default function Page() {
     router.push(`?${newParams.toString()}`);
   };
 
-  // ⬇️ Sort
-  const handleSelectName = (value: number) => {
-    const newParams = new URLSearchParams(searchParams.toString());
-    if (value === 1) {
-      newParams.set("sortBy", "TenKhoa");
-      newParams.set("sortOrder", "ASC");
-    } else if (value === 2) {
-      newParams.set("sortBy", "TenKhoa");
-      newParams.set("sortOrder", "DESC");
-    }
-    newParams.set("skip", "0");
-    newParams.set("limit", "10");
-    router.push(`?${newParams.toString()}`);
-  };
-
   // 📄 Phân trang
   const handlePageChange = (page: number) => {
     const newParams = new URLSearchParams(searchParams.toString());
@@ -114,10 +80,7 @@ export default function Page() {
           isLoadingData={loadingData}
           params={param}
           data={records}
-          pagination={pagination}
           onSearch={handleSearch}
-          sortOptions={dataOptions}
-          onSelectSort={handleSelectName}
           onPageChange={handlePageChange}
         />
       )}

@@ -17,6 +17,7 @@ interface Prop {
   onClose: () => void;
   isOpen: boolean;
   MaDA: string;
+  MaKhoa: number;
   onLoad: () => void;
 }
 export default function AddStudentModal({
@@ -24,6 +25,7 @@ export default function AddStudentModal({
   isOpen,
   MaDA,
   onLoad,
+  MaKhoa,
 }: Prop) {
   const [searchText, setSearchText] = useState("");
   const [options, setOptions] = useState<Option[]>([]);
@@ -37,12 +39,13 @@ export default function AddStudentModal({
     setLoading(true);
     try {
       const res = await axios.get("http://localhost:4000/students", {
-        params: { search: inputValue },
+        params: { search: inputValue, MaKhoa },
       });
       const data = res.data.data;
       return data.map((sv: any) => ({
-        label: sv.MaSV,
+        label: `${sv.TenSV} - ${sv.MaSV}`,
         value: sv.MaSV,
+        display: sv.MaSV,
       }));
     } finally {
       setLoading(false);
@@ -51,7 +54,9 @@ export default function AddStudentModal({
 
   // Hàm gọi API lấy chi tiết SV theo MaSV
   async function fetchStudentDetail(maSV: string) {
-    const res = await axios.get(`http://localhost:4000/students/${maSV}`);
+    const res = await axios.get(`http://localhost:4000/students/${maSV}`, {
+      params: { MaKhoa },
+    });
     const data = await res.data[0];
     setStudent(data);
   }
@@ -59,6 +64,7 @@ export default function AddStudentModal({
     await axios
       .post(`http://localhost:4000/projects/addStudent/${MaDA}`, {
         MaSV: selected.value,
+        MaKhoa,
       })
       .then((res) => {
         alert("✅ Thêm sinh viên thành công");
@@ -72,8 +78,9 @@ export default function AddStudentModal({
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white w-[550px] rounded-2xl shadow-lg p-6">
+      <div className="bg-white w-[700px] rounded-2xl shadow-lg p-6">
         <h2 className="text-lg font-semibold mb-4">Thêm sinh viên vào đồ án</h2>
+
         {/* Select Search */}
         <Select
           placeholder="Nhập ít nhất 5 ký tự để tìm SV..."
@@ -91,40 +98,64 @@ export default function AddStudentModal({
           onInputChange={(val) => {
             setSearchText(val);
             if (val.length >= 5) {
-              // gọi async ở ngoài
               fetchStudents(val).then((result) => setOptions(result));
             } else {
-              setOptions([]); // clear nếu gõ <5 ký tự
+              setOptions([]);
             }
           }}
           options={options}
+          formatOptionLabel={(opt, { context }) =>
+            context === "menu" ? (
+              // 👇 Khi hiển thị trong dropdown
+              <div className="flex justify-between">
+                <span>{opt.label}</span>
+              </div>
+            ) : (
+              // 👇 Khi hiển thị sau khi chọn
+              <span>{opt.value}</span>
+            )
+          }
         />
 
-        <div className="mt-4 space-y-3">
+        {/* Grid form 3 cột */}
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <Label>Tên sinh viên</Label>
-            <Input disabled={true} value={student?.TenSV || ""} />
+            <Input disabled value={student?.TenSV || ""} />
           </div>
 
           <div>
             <Label>Địa chỉ</Label>
-            <Input disabled={true} value={student?.DiaChi || ""} />
+            <Input disabled value={student?.DiaChi || ""} />
           </div>
 
           <div>
             <Label>Khoa</Label>
-            <Input disabled={true} value={student?.TenKhoa || ""} />
+            <Input disabled value={student?.TenKhoa || ""} />
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t mt-4">
-          <Button type="button" variant="outline" onClick={onClose}>
+        {/* Footer buttons */}
+        <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              onClose();
+              setStudent(null);
+              setSelected(null);
+            }}
+          >
             ❌ Huỷ
           </Button>
           <Button
             type="button"
             className="bg-blue-600 text-white hover:bg-blue-700"
-            onClick={handleAdd}
+            onClick={() => {
+              handleAdd();
+              setStudent(null);
+              setSelected(null);
+            }}
           >
             💾 Thêm
           </Button>

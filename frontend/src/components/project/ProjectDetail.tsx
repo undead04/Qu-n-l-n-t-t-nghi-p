@@ -2,23 +2,22 @@
 import { useEffect, useState } from "react";
 import { formatDate } from "@/utils/formatDate";
 import axios from "axios";
-import DeleteModal from "../ui/DeleteModal";
 import { IProject } from "./ProjectList";
-import ScoreForm, { IScoreForm } from "./ScoreForm";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Option } from "../ui/SelectBox";
 import { TableStudent } from "./TableStudent";
 import { ScoreList } from "./ScoreList";
 
 interface Props {
   MaDA: string;
+  MaKhoa: number;
 }
-export default function ProjectDetail({ MaDA }: Props) {
+export default function ProjectDetail({ MaDA, MaKhoa }: Props) {
   const [project, setProject] = useState<IProject>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const fetchProjects = async () => {
     try {
-      const res = await axios.get(`http://localhost:4000/projects/${MaDA}`);
+      const res = await axios.get(`http://localhost:4000/projects/${MaDA}`, {
+        params: { MaKhoa },
+      });
       setProject(res.data[0]);
     } catch (error) {
       console.error("Fetch council error:", error);
@@ -67,8 +66,8 @@ export default function ProjectDetail({ MaDA }: Props) {
           </div>
 
           {/* Bảng sinh viên */}
-          <TableStudent MaDA={MaDA} />
-          <ScoreList MaDA={MaDA} />
+          <TableStudent MaDA={MaDA} MaKhoa={MaKhoa}/>
+          <ScoreList MaDA={MaDA} MaKhoa={MaKhoa}/>
         </div>
       )}
     </>

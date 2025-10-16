@@ -10,13 +10,22 @@ interface Props {
   yearOption: Option[];
   facultyOption: Option[];
 }
-interface ITeacherSummary {
-  GiaoVienDiemCaoNhat: string;
-  DiemCaoNhat: number;
-  GiaoVienDiemThapNhat: string;
-  DiemThapNhat: number;
-  DiemTrungBinhChung: number;
+export interface TeacherReport {
+  MaGV: string; // Mã giáo viên
+  TenGV: string; // Tên giáo viên
+  TenKhoa: string; // Tên khoa
+  MaNamHoc: string; // Niên khóa (vd: "2024-2025")
+
+  SoDeTai: number; // Số lượng đề tài hướng dẫn
+  SoSV: number; // Tổng số sinh viên tham gia
+  DiemMin: number; // Điểm thấp nhất
+  DiemMax: number; // Điểm cao nhất
+  DiemTB: number; // Điểm trung bình
+
+  TiLeDau: number; // Tỷ lệ sinh viên đậu (%)
+  TiLeRot: number; // Tỷ lệ sinh viên rớt (%)
 }
+
 export function ReportTeacher({ yearOption, facultyOption }: Props) {
   const [param, setParam] = useState<{
     limit: number;
@@ -30,8 +39,7 @@ export function ReportTeacher({ yearOption, facultyOption }: Props) {
     year: null,
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [data, setData] = useState<ITeacher[]>([]);
-  const [teacherSummary, setTeacherSummary] = useState<ITeacherSummary>();
+  const [data, setData] = useState<TeacherReport[]>([]);
   const [totalRecords, setTotalReocrds] = useState<number>();
   const loadData = async () => {
     setIsLoading(true);
@@ -45,27 +53,9 @@ export function ReportTeacher({ yearOption, facultyOption }: Props) {
         },
       });
       setData(res.data.data);
-      setTotalReocrds(res.data.pagination.TotalRecords);
+      setTotalReocrds(res.data.pagination.TotalCount);
     } catch (err) {
       alert("⚠️ Lỗi khi lấy dữ liệu báo cáo giáo viên");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  const fetchTeacherSummary = async () => {
-    try {
-      const res = await axios.get(
-        "http://localhost:4000/report/teacherSummarys",
-        {
-          params: {
-            maKhoa: param.year,
-            deCode: param.deCode,
-          },
-        }
-      );
-      setTeacherSummary(res.data[0]);
-    } catch (err) {
-      alert("⚠️ Lỗi khi lấy dữ liệu teacher summary");
     } finally {
       setIsLoading(false);
     }
@@ -73,9 +63,6 @@ export function ReportTeacher({ yearOption, facultyOption }: Props) {
   useEffect(() => {
     loadData();
   }, [JSON.stringify(param)]);
-  useEffect(() => {
-    fetchTeacherSummary();
-  }, [param.year, param.deCode]);
   return (
     <>
       {/* Report Section */}
@@ -123,10 +110,13 @@ export function ReportTeacher({ yearOption, facultyOption }: Props) {
               <tr className="bg-purple-100 text-left">
                 <th className="p-3">Mã giáo viên</th>
                 <th className="p-3">Tên giáo viên</th>
-                <th className="p-3">Niên khóa</th>
-                <th className="p-3">Khoa</th>
+                <th className="p-3">Số SV</th>
                 <th className="p-3">Số đề tài</th>
-                <th className="p-3">Điểm trung bình</th>
+                <th className="p-3">Điểm Min</th>
+                <th className="p-3">Điểm Max</th>
+                <th className="p-3">Điểm TB</th>
+                <th className="p-3">TL Đậu</th>
+                <th className="p-3">TL Rớt</th>
               </tr>
             </thead>
             <tbody>
@@ -140,10 +130,13 @@ export function ReportTeacher({ yearOption, facultyOption }: Props) {
                       {row.MaGV}
                     </td>
                     <td className="p-3">{row.TenGV}</td>
-                    <td className="p-3">{row.MaNamHoc}</td>
-                    <td className="p-3">{row.TenKhoa}</td>
+                    <td className="p-3">{row.SoSV}</td>
                     <td className="p-3">{row.SoDeTai}</td>
-                    <td className="p-3">{row.DiemTrungBinh}</td>
+                    <td className="p-3">{row.DiemMin}</td>
+                    <td className="p-3">{row.DiemMax}</td>
+                    <td className="p-3">{row.DiemTB.toFixed(2)}</td>
+                    <td className="p-3">{`${row.TiLeDau}%`}</td>
+                    <td className="p-3">{`${row.TiLeRot}%`}</td>
                   </tr>
                 ))
               ) : (
@@ -158,7 +151,7 @@ export function ReportTeacher({ yearOption, facultyOption }: Props) {
         </div>
 
         {/* Pagination */}
-        <div className="flex justify-center items-center mt-6 pt-4  text-sm text-gray-600">
+        <div className="flex justify-end items-center mt-6 pt-4  text-sm text-gray-600">
           <Pagination
             currentPage={param.skip / param.limit + 1 || 1}
             totalLength={totalRecords || 0}
@@ -167,29 +160,6 @@ export function ReportTeacher({ yearOption, facultyOption }: Props) {
               setParam({ ...param, skip: (page - 1) * param.limit })
             }
           />
-        </div>
-      </div>
-      {/* Summary Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-green-100 p-4 rounded-xl shadow text-center">
-          <h3 className="text-sm font-semibold text-green-700">
-            Điểm cao nhất
-          </h3>
-          <p className="text-2xl font-bold mt-1">{`${teacherSummary?.GiaoVienDiemCaoNhat} - ${teacherSummary?.DiemCaoNhat}`}</p>
-        </div>
-
-        <div className="bg-red-100 p-4 rounded-xl shadow text-center">
-          <h3 className="text-sm font-semibold text-red-700">Điểm thấp nhất</h3>
-          <p className="text-2xl font-bold mt-1">{`${teacherSummary?.GiaoVienDiemThapNhat} - ${teacherSummary?.DiemThapNhat}`}</p>
-        </div>
-
-        <div className="bg-blue-100 p-4 rounded-xl shadow text-center">
-          <h3 className="text-sm font-semibold text-blue-700">
-            Điểm trung bình
-          </h3>
-          <p className="text-2xl font-bold mt-1">
-            {teacherSummary?.DiemTrungBinhChung}
-          </p>
         </div>
       </div>
     </>

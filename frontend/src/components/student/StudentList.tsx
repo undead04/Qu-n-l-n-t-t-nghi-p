@@ -16,7 +16,7 @@ export interface IStudent {
 interface StudentListProps {
   data: IStudent[];
   facultyOptions: Option[];
-  handleView: (MaSV: string) => void;
+  handleView: (id: string, MaKhoa: number) => void;
   pagination: IPagination;
   onSearch: (keyword: string) => void;
   onPageChange: (page: number) => void;
@@ -52,7 +52,7 @@ export function StudentList({
     if (sortBy == "TenSV" && sortOrder == "ASC") {
       return convertSelectBox(sortOptions, 1);
     } else if (sortBy == "TenSV" && sortOrder == "DESC") {
-      return convertSelectBox(sortOptions, 1);
+      return convertSelectBox(sortOptions, 2);
     } else {
       return null;
     }
@@ -110,7 +110,6 @@ export function StudentList({
             <tr className="bg-green-100 text-left">
               <th className="p-3">Mã SV</th>
               <th className="p-3">Họ tên</th>
-              <th className="p-3">Khoa</th>
               <th className="p-3">Địa chỉ</th>
               <th className="p-3">Số điện thoại</th>
               <th className="p-3">Số lần bảo vệ</th>
@@ -126,7 +125,6 @@ export function StudentList({
                 >
                   <td className="p-3 font-medium text-gray-700">{row.MaSV}</td>
                   <td className="p-3">{row.TenSV}</td>
-                  <td className="p-3">{row.TenKhoa}</td>
                   <td className="p-3">{row.DiaChi}</td>
                   <td className="p-3">{row.SoDienThoai}</td>
                   <td className="p-3">{row.SoLanBaoVe}</td>
@@ -134,7 +132,7 @@ export function StudentList({
                     <div className="flex gap-2 justify-center">
                       <Button
                         className="bg-blue-500 text-white hover:bg-blue-600"
-                        onClick={() => handleView(row.MaSV)}
+                        onClick={() => handleView(row.MaSV, row.MaKhoa)}
                       >
                         👁 Xem
                       </Button>
@@ -144,9 +142,15 @@ export function StudentList({
               ))
             ) : (
               <tr>
-                <td colSpan={9} className="p-6 text-center text-gray-500">
-                  📭 Không có dữ liệu
-                </td>
+                {params.deCode == null ? (
+                  <td colSpan={9} className="p-6 text-center text-gray-500">
+                    📭 Vui lòng chọn khoa
+                  </td>
+                ) : (
+                  <td colSpan={9} className="p-6 text-center text-gray-500">
+                    📭 Không có dữ liệu
+                  </td>
+                )}
               </tr>
             )}
           </tbody>

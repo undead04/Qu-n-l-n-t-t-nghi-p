@@ -6,8 +6,9 @@ import AddStudentModal from "./AddStudentForm";
 import DeleteModal from "../ui/DeleteModal";
 interface Prop {
   MaDA: string;
+  MaKhoa: number;
 }
-export function TableStudent({ MaDA }: Prop) {
+export function TableStudent({ MaDA, MaKhoa }: Prop) {
   const [students, setStudents] = useState<IStudent[]>([]);
   const [student, setStudent] = useState<IStudent>();
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -17,7 +18,7 @@ export function TableStudent({ MaDA }: Prop) {
     setIsLoading(true);
     try {
       const res = await axios.get(`http://localhost:4000/projects/students`, {
-        params: { MaDoAn: MaDA },
+        params: { MaDoAn: MaDA, MaKhoa },
       });
       setStudents(res.data);
     } catch (error) {
@@ -36,7 +37,7 @@ export function TableStudent({ MaDA }: Prop) {
   const handleDelete = async () => {
     await axios
       .delete(`http://localhost:4000/projects/delStudent/${MaDA}`, {
-        params: { MaSV: student?.MaSV },
+        params: { MaSV: student?.MaSV, MaKhoa },
       })
       .then((res) => {
         alert("Xóa sinh viên thành công");
@@ -62,6 +63,7 @@ export function TableStudent({ MaDA }: Prop) {
         isOpen={isOpen}
         MaDA={MaDA}
         onLoad={fetchStudents}
+        MaKhoa={MaKhoa}
       />
       <div className="bg-white shadow rounded-lg p-6 border">
         <h3 className="text-lg font-semibold mb-4">Danh sách sinh viên</h3>

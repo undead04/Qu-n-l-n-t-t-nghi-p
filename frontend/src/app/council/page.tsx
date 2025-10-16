@@ -41,10 +41,8 @@ export default function Page() {
     sortOrder: "DESC",
     year: null,
   });
-  const facultyOptions = [
-    { label: "Công nghệ thông tin", value: 1 },
-    { label: "Cơ khí", value: 2 },
-  ];
+  const [listYear, setListYear] = useState<Option[]>([]);
+  const [facultyOptions, setFacultyOptions] = useState<Option[]>([]);
   const sortOptions = [
     { label: "MaHD giảm dần", value: 1 },
     { label: "MaHD tăng dần", value: 2 },
@@ -54,6 +52,33 @@ export default function Page() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isOpenDel, setIsOpenDel] = useState<boolean>(false);
   // 🚀 Fetch API dựa trên URL query
+  const loadData = async () => {
+    try {
+      const [yearsRes, facultiesRes] = await Promise.all([
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/years`),
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/faculties`),
+      ]);
+      setListYear(
+        yearsRes.data.map((item: any) => ({
+          label: item.MaNamHoc,
+          value: item.MaNamHoc,
+        }))
+      );
+      setFacultyOptions(
+        facultiesRes.data.map((item: any) => ({
+          label: item.TenKhoa,
+          value: item.MaKhoa,
+        }))
+      );
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    loadData();
+  }, []);
   const fetchData = async () => {
     const skip = parseInt(searchParams.get("skip") || "0");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -67,15 +92,24 @@ export default function Page() {
     setParam({ skip, limit, search, deCode, sortBy, sortOrder, year });
     setLoadingData(true);
     try {
-      const res = await axios.get("http://localhost:4000/councils", {
-        params: { skip, limit, deCode, search, sortBy, sortOrder, year },
-      });
-      setRecords(res.data.data);
-      setPagination(res.data.pagination);
+      if (deCode != null) {
+        const res = await axios.get("http://localhost:4000/councils", {
+          params: {
+            search,
+            limit,
+            skip,
+            sortBy,
+            sortOrder,
+            MaKhoa: deCode,
+            year,
+          },
+        });
+        setRecords(res.data.data);
+        setPagination(res.data.pagination);
+      }
     } catch (err) {
-      alert("⚠️ Lỗi khi lấy dữ liệu report");
+      alert("⚠️ Lỗi khi lấy dữ liệu hội đồng");
     } finally {
-      setLoading(false);
       setLoadingData(false);
     }
   };
@@ -231,6 +265,7 @@ export default function Page() {
           />
 
           <CouncilList
+            listYear={listYear}
             sortOptions={sortOptions}
             onSelectSort={handleSelectSort}
             handleOpen={handleOpen}

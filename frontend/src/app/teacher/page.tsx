@@ -4,9 +4,11 @@ import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { IPagination } from "@/components/ui/Pagination";
 import { ITeacher, TeacherList } from "@/components/teacher/TeacherList";
+import { Option } from "@/components/ui/SelectBox";
 
 export default function Page() {
   const [records, setRecords] = useState<ITeacher[]>([]);
+  const [facultyOptions, setFacultyOptions] = useState<Option[]>([]);
   const [pagination, setPagination] = useState<IPagination>({
     TotalRecords: 0,
     TotalPages: 0,
@@ -36,11 +38,26 @@ export default function Page() {
     { label: "Sắp xếp tăng dần theo tên", value: 1 },
     { label: "Sắp xếp giảm dần theo tên", value: 2 },
   ];
-  const facultyOptions = [
-    { label: "Tất cả khoa", value: 0 },
-    { label: "Công nghệ thông tin", value: 1 },
-    { label: "Cơ khí", value: 2 },
-  ];
+  const loadData = async () => {
+    try {
+      const [facultiesRes] = await Promise.all([
+        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/faculties`),
+      ]);
+      setFacultyOptions(
+        facultiesRes.data.map((item: any) => ({
+          label: item.TenKhoa,
+          value: item.MaKhoa,
+        }))
+      );
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    loadData();
+  }, []);
   // 🚀 Fetch API dựa trên URL query
   const fetchData = async () => {
     const search = searchParams.get("search") || null;
@@ -54,22 +71,23 @@ export default function Page() {
     setParam({ search, skip, limit, deCode, sortBy, sortOrder });
     setLoadingData(true);
     try {
-      const res = await axios.get("http://localhost:4000/teachers", {
-        params: {
-          search,
-          limit,
-          skip,
-          deCode,
-          sortBy: sortBy,
-          sortOrder: sortOrder,
-        },
-      });
-      setRecords(res.data.data);
-      setPagination(res.data.pagination);
+      if (deCode != null) {
+        const res = await axios.get("http://localhost:4000/teachers", {
+          params: {
+            search,
+            limit,
+            skip,
+            MaKhoa: deCode,
+            sortBy: sortBy,
+            sortOrder: sortOrder,
+          },
+        });
+        setRecords(res.data.data);
+        setPagination(res.data.pagination);
+      }
     } catch (err) {
-      alert("⚠️ Lỗi khi lấy dữ liệu report");
+      alert("⚠️ Lỗi khi lấy dữ liệu giáo viên");
     } finally {
-      setLoading(false);
       setLoadingData(false);
     }
   };
@@ -121,7 +139,9 @@ export default function Page() {
     newParams.set("skip", ((page - 1) * limit).toString());
     router.push(`?${newParams.toString()}`);
   };
-
+  const handleView = (id: string, MaKhoa: number) => {
+    router.push(`/teacher/${id}?MaKhoa=${MaKhoa}`);
+  };
   return (
     <>
       {!loading && (
@@ -136,6 +156,7 @@ export default function Page() {
           sortOptions={dataOptions}
           onSelectSort={handleSelectName}
           onPageChange={handlePageChange}
+          handleView={handleView}
         />
       )}
     </>

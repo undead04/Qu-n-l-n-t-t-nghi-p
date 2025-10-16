@@ -12,14 +12,11 @@ import { IInputProject, initProject } from "../project/ProjectForm";
 import AddCouncilModal from "./AddTopicToCouncilForm";
 interface Props {
   MaHD: string;
+  MaKhoa: number;
 }
-export default function CouncilDetail({ MaHD }: Props) {
+export default function CouncilDetail({ MaHD, MaKhoa }: Props) {
   const [council, setCouncil] = useState<ICouncil>();
   const [projects, setProjects] = useState<IProject[]>([]);
-  const [newProjects, setNewProjects] = useState<IInputProject>({
-    ...initProject,
-    MaDT: "",
-  });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [pagination, setPagination] = useState<IPagination>({
     TotalRecords: 0,
@@ -32,7 +29,9 @@ export default function CouncilDetail({ MaHD }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const fetchCouncil = async () => {
     try {
-      const res = await axios.get(`http://localhost:4000/councils/${MaHD}`);
+      const res = await axios.get(`http://localhost:4000/councils/${MaHD}`, {
+        params: { MaKhoa },
+      });
       setCouncil(res.data[0]);
     } catch (error) {
       console.error("Fetch council error:", error);
@@ -42,7 +41,10 @@ export default function CouncilDetail({ MaHD }: Props) {
   const fetchProjects = async (skip: number = 0, limit: number = 10) => {
     try {
       const res = await axios.get(
-        `http://localhost:4000/councils/topics/${MaHD}`
+        `http://localhost:4000/councils/topics/${MaHD}`,
+        {
+          params: { MaKhoa },
+        }
       );
 
       setProjects(res.data);
@@ -78,10 +80,11 @@ export default function CouncilDetail({ MaHD }: Props) {
         data: {
           MaDoAn: topicDel.MaDT,
           MaHoiDong: MaHD,
+          MaKhoa: MaKhoa,
         },
       })
       .then((res) => {
-        alert("Xóa sinh viên thành công");
+        alert("Xóa đề tài thành công");
         fetchProjects();
         handleCloseDelete();
       })
@@ -90,8 +93,8 @@ export default function CouncilDetail({ MaHD }: Props) {
       });
   };
   const router = useRouter();
-  const handleNavigate = (id: string) => {
-    router.push(`/project/${id}`);
+  const handleNavigate = (id: string, MaKhoa: number) => {
+    router.push(`/project/${id}?MaKhoa=${MaKhoa}`);
   };
 
   return (
@@ -106,6 +109,7 @@ export default function CouncilDetail({ MaHD }: Props) {
         isOpen={isOpen}
         onLoad={fetchProjects}
         MaHD={MaHD}
+        MaKhoa={MaKhoa}
       />
       {!isLoading && council && (
         <div className="w-full max-w-5xl mx-auto space-y-6">
@@ -185,7 +189,9 @@ export default function CouncilDetail({ MaHD }: Props) {
                         <td className="p-3">
                           <div className="flex gap-2 justify-center">
                             <Button
-                              onClick={() => handleNavigate(row.MaDT!)}
+                              onClick={() =>
+                                handleNavigate(row.MaDT!, row.MaKhoa)
+                              }
                               className="bg-blue-500 text-white hover:bg-blue-600"
                             >
                               👁 Xem

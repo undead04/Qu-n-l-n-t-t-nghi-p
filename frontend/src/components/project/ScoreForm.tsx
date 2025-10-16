@@ -23,6 +23,7 @@ interface pageProp {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   onLoad: () => Promise<void>;
+  MaKhoa: number;
 }
 export const initScore: IScoreForm = {
   MaDoAn: "",
@@ -39,10 +40,11 @@ export default function ScoreForm({
   form,
   onChange,
   onLoad,
+  MaKhoa,
 }: pageProp) {
   const handleSubmit = async () => {
     try {
-      await axios.put("http://localhost:4000/scores", form);
+      await axios.put("http://localhost:4000/scores", { ...form, MaKhoa });
       alert("Nhập điểm thành công");
       onClose();
       await onLoad();

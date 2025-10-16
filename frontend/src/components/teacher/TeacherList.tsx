@@ -2,6 +2,8 @@ import { convertSelectBox } from "@/utils/convertSelectBox";
 import { IPagination, Pagination } from "../ui/Pagination";
 import SearchBox from "../ui/SearchBox";
 import SelectBox, { Option } from "../ui/SelectBox";
+import { Button } from "../ui/Button";
+import { useRouter } from "next/navigation";
 export interface ITeacher {
   MaGV: string;
   TenGV: string;
@@ -13,7 +15,7 @@ export interface ITeacher {
   ChuyenNganh: string;
   SoDeTai: number;
   DiemTrungBinh: number;
-  MaNamHoc:string
+  MaNamHoc: string;
 }
 interface TeacherListProps {
   data: ITeacher[];
@@ -33,6 +35,7 @@ interface TeacherListProps {
   sortOptions: Option[];
   onSelectSort: (otp: any) => void;
   isLoadingData: boolean;
+  handleView: (id: string, MaKhoa: number) => void;
 }
 export function TeacherList({
   data,
@@ -45,6 +48,7 @@ export function TeacherList({
   sortOptions,
   onSelectSort,
   isLoadingData,
+  handleView,
 }: TeacherListProps) {
   const handleConvert = () => {
     const sortOrder = params.sortOrder;
@@ -57,6 +61,10 @@ export function TeacherList({
     } else {
       return null;
     }
+  };
+  const router = useRouter();
+  const handleNavigation = () => {
+    router.push(`/teacher/report`);
   };
   return (
     <div className="px-6 py-6 bg-gradient-to-tr from-green-50 to-white rounded-2xl shadow-lg border space-y-6">
@@ -102,6 +110,11 @@ export function TeacherList({
             placeholder="Chon"
           />
         </div>
+        <div className="md:col-span-2 flex justify-end gap-2">
+          <Button variant="default" onClick={handleNavigation}>
+            Báo cáo
+          </Button>
+        </div>
       </div>
 
       {/* Table */}
@@ -111,11 +124,11 @@ export function TeacherList({
             <tr className="bg-green-100 text-left">
               <th className="p-3">Mã GV</th>
               <th className="p-3">Họ tên</th>
-              <th className="p-3">Khoa</th>
               <th className="p-3">Địa chỉ</th>
               <th className="p-3">Số điện thoại</th>
               <th className="p-3">Học vị</th>
               <th className="p-3">Chuyên nghành</th>
+              <th className="p-3">Thao Tác</th>
             </tr>
           </thead>
           <tbody>
@@ -127,18 +140,33 @@ export function TeacherList({
                 >
                   <td className="p-3 font-medium text-gray-700">{row.MaGV}</td>
                   <td className="p-3">{row.TenGV}</td>
-                  <td className="p-3">{row.TenKhoa}</td>
                   <td className="p-3">{row.DiaChi}</td>
                   <td className="p-3">{row.SoDienThoai}</td>
                   <td className="p-3">{row.HocVi}</td>
                   <td className="p-3">{row.ChuyenNganh}</td>
+                  <td className="p-3">
+                    <div className="flex gap-2 justify-center">
+                      <Button
+                        className="bg-blue-500 text-white hover:bg-blue-600"
+                        onClick={() => handleView(row.MaGV, row.MaKhoa)}
+                      >
+                        👁 Xem
+                      </Button>
+                    </div>
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={9} className="p-6 text-center text-gray-500">
-                  📭 Không có dữ liệu
-                </td>
+                {params.deCode == null ? (
+                  <td colSpan={9} className="p-6 text-center text-gray-500">
+                    📭 Vui lòng chọn khoa
+                  </td>
+                ) : (
+                  <td colSpan={9} className="p-6 text-center text-gray-500">
+                    📭 Không có dữ liệu
+                  </td>
+                )}
               </tr>
             )}
           </tbody>

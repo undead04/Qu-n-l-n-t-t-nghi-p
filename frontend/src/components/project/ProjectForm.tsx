@@ -67,10 +67,12 @@ export default function ProjectForm({
   // Lấy danh sách giáo viên
   const fetchTeachers = async () => {
     try {
-      const res = await axios.get("http://localhost:4000/teachers", {
-        params: { limit: 100 },
-      });
-      setListTeacher(res.data.data);
+      if (input.MaKhoa) {
+        const res = await axios.get("http://localhost:4000/teachers", {
+          params: { limit: 100, MaKhoa: input.MaKhoa },
+        });
+        setListTeacher(res.data.data);
+      }
     } catch (err) {
       alert("⚠️ Lỗi khi lấy danh sách giáo viên");
     }
@@ -79,7 +81,7 @@ export default function ProjectForm({
   // Khi mount thì fetch data
   useEffect(() => {
     fetchTeachers();
-  }, []);
+  }, [input.MaKhoa]);
 
   // Khi thay đổi khoa thì lọc lại giáo viên
   useEffect(() => {

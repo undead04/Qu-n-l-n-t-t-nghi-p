@@ -8,6 +8,7 @@ import SelectBox, { Option } from "../ui/SelectBox";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useEffect, useState } from "react";
 import { ITeacher } from "../teacher/TeacherList";
+import SelectSearch from "../ui/SelectSearch";
 
 // Kiểu dữ liệu cho form hội đồng
 export interface IInputCouncil {
@@ -70,10 +71,12 @@ export function AddCouncilForm({
   // Lấy danh sách giáo viên
   const fetchTeachers = async () => {
     try {
-      const res = await axios.get("http://localhost:4000/teachers", {
-        params: { limit: 100 },
-      });
-      setListTeacher(res.data.data);
+      if (input.MaKhoa != null) {
+        const res = await axios.get("http://localhost:4000/teachers", {
+          params: { limit: 100, MaKhoa: input.MaKhoa },
+        });
+        setListTeacher(res.data.data);
+      }
     } catch (err) {
       alert("⚠️ Lỗi khi lấy danh sách giáo viên");
     }
@@ -82,7 +85,7 @@ export function AddCouncilForm({
   // Khi mount thì fetch data
   useEffect(() => {
     fetchTeachers();
-  }, []);
+  }, [input.MaKhoa]);
 
   // Khi thay đổi khoa thì lọc lại giáo viên
   useEffect(() => {

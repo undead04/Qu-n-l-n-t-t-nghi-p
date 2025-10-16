@@ -20,6 +20,7 @@ export interface IProject {
   ThoiGianKetThuc: Date;
   SoSV: number;
   DiemTrungBinh?: number;
+  KetQua: string;
 }
 
 interface ProjectListProps {
@@ -40,6 +41,7 @@ interface ProjectListProps {
     sortBy: string;
     year: string | null;
   };
+  listYear: Option[];
   handleOpenDelete: (input: IInputProject) => void;
   sortOptions: Option[];
   onSelectSort: (otp: any) => void;
@@ -57,11 +59,12 @@ export function ProjectList({
   facultyOptions,
   params,
   isLoading,
+  listYear,
   handleOpenDelete,
 }: ProjectListProps) {
   const router = useRouter();
-  const handleNavigate = (id: string) => {
-    router.push(`/project/${id}`);
+  const handleNavigate = (id: string, MaKhoa: number) => {
+    router.push(`/project/${id}?MaKhoa=${MaKhoa}`);
   };
   const handleConvert = () => {
     const SortOrder = params.sortOrder;
@@ -78,16 +81,6 @@ export function ProjectList({
       return null;
     }
   };
-  const listYear: Option[] = [
-    {
-      label: "2024-2025",
-      value: "2024-2025",
-    },
-    {
-      label: "2025-2026",
-      value: "2025-2026",
-    },
-  ];
   return (
     <>
       <div className="px-6 py-6 bg-gradient-to-tr from-purple-50 to-white rounded-2xl shadow-lg border space-y-6">
@@ -113,16 +106,6 @@ export function ProjectList({
               onSearch={(query) => onSearch(query)}
             />
           </div>
-
-          {/* Sắp xếp */}
-          <div className="md:col-span-3">
-            <SelectBox
-              opt={handleConvert()}
-              options={sortOptions}
-              onChange={(value) => onSelectSort(value)}
-              placeholder="↕️ Sắp xếp"
-            />
-          </div>
           <div className="md:col-span-3">
             <SelectBox
               opt={convertSelectBox(facultyOptions, params.deCode)}
@@ -137,6 +120,15 @@ export function ProjectList({
               opt={listYear.find((op) => op.value == params.year) || null}
               onChange={(opt) => onSelectFaculty("year", opt.value)}
               placeholder="Chọn khóa"
+            />
+          </div>
+          {/* Sắp xếp */}
+          <div className="md:col-span-3">
+            <SelectBox
+              opt={handleConvert()}
+              options={sortOptions}
+              onChange={(value) => onSelectSort(value)}
+              placeholder="↕️ Sắp xếp"
             />
           </div>
 
@@ -154,7 +146,6 @@ export function ProjectList({
                 <th className="p-3">Mã đồ án</th>
                 <th className="p-3">Tên đề tài</th>
                 <th className="p-3">Niên khóa</th>
-                <th className="p-3">Khoa</th>
                 <th className="p-3">Giáo viên</th>
                 <th className="p-3">Bắt đầu</th>
                 <th className="p-3">Kết thúc</th>
@@ -174,7 +165,7 @@ export function ProjectList({
                     </td>
                     <td className="p-3">{row.TenDT}</td>
                     <td className="p-3">{row.MaNamHoc}</td>
-                    <td className="p-3">{row.TenKhoa}</td>
+
                     <td className="p-3">{row.TenGVHuongDan}</td>
                     <td className="p-3">{formatDate(row.ThoiGianBatDau)}</td>
                     <td className="p-3">{formatDate(row.ThoiGianKetThuc)}</td>
@@ -201,7 +192,7 @@ export function ProjectList({
                         </Button>
                         <Button
                           className="bg-blue-500 text-white hover:bg-blue-600"
-                          onClick={() => handleNavigate(row.MaDT!)}
+                          onClick={() => handleNavigate(row.MaDT!, row.MaKhoa!)}
                         >
                           👁 Xem
                         </Button>
@@ -221,9 +212,15 @@ export function ProjectList({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="p-6 text-center text-gray-500">
-                    📭 Không có dữ liệu
-                  </td>
+                  {params.deCode == null ? (
+                    <td colSpan={9} className="p-6 text-center text-gray-500">
+                      📭 Vui lòng chọn khoa
+                    </td>
+                  ) : (
+                    <td colSpan={9} className="p-6 text-center text-gray-500">
+                      📭 Không có dữ liệu
+                    </td>
+                  )}
                 </tr>
               )}
             </tbody>

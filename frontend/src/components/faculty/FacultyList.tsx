@@ -1,7 +1,6 @@
-import { convertSelectBox } from "@/utils/convertSelectBox";
-import { IPagination, Pagination } from "../ui/Pagination";
 import SearchBox from "../ui/SearchBox";
-import SelectBox, { Option } from "../ui/SelectBox";
+import { Button } from "../ui/Button";
+import { useRouter } from "next/navigation";
 export interface IFaculty {
   MaKhoa: number;
   TenKhoa: string;
@@ -13,41 +12,24 @@ export interface IFaculty {
 }
 interface FacultyListProps {
   data: IFaculty[];
-  pagination: IPagination;
   onSearch: (keyword: string) => void;
   onPageChange: (page: number) => void;
   params: {
     search: string | null;
     limit: number;
-    deCode: number | null;
     skip: number;
-    sortOrder: string;
-    sortBy: string;
   };
-  sortOptions: Option[];
-  onSelectSort: (otp: any) => void;
   isLoadingData: boolean;
 }
 export function FacultyList({
   data,
-  pagination,
   onSearch,
-  onPageChange,
   params,
-  sortOptions,
-  onSelectSort,
   isLoadingData,
 }: FacultyListProps) {
-  const handleConvert = () => {
-    const sortOrder = params.sortOrder;
-    const sortBy = params.sortBy;
-    if (sortBy == "TenKhoa" && sortOrder == "ASC") {
-      return convertSelectBox(sortOptions, 1);
-    } else if (sortBy == "TenKhoa" && sortOrder == "DESC") {
-      return convertSelectBox(sortOptions, 2);
-    } else {
-      return null;
-    }
+  const router = useRouter();
+  const handleNavigation = () => {
+    router.push(`/faculty/report`);
   };
   return (
     <div className="px-6 py-6 bg-gradient-to-tr from-green-50 to-white rounded-2xl shadow-lg border space-y-6">
@@ -71,15 +53,10 @@ export function FacultyList({
             onSearch={(query) => onSearch(query)}
           />
         </div>
-
-        {/* Bộ lọc Lớp */}
-        <div className="md:col-span-3">
-          <SelectBox
-            options={sortOptions}
-            opt={handleConvert()}
-            onChange={(opt: Option) => onSelectSort(opt.value)}
-            placeholder="Chon"
-          />
+        <div className="md:col-span-8 flex justify-end gap-2">
+          <Button variant="default" onClick={handleNavigation}>
+            Báo cáo
+          </Button>
         </div>
       </div>
 
@@ -114,17 +91,6 @@ export function FacultyList({
             )}
           </tbody>
         </table>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex justify-between items-center mt-4 pt-4 border-t text-sm text-gray-600">
-        <span>{pagination?.TotalRecords || 0} bản ghi</span>
-        <Pagination
-          currentPage={pagination?.CurrentPage || 1}
-          totalLength={pagination?.TotalRecords || 0}
-          pageSize={pagination?.PageSize || 10}
-          onPageChange={onPageChange}
-        />
       </div>
     </div>
   );

@@ -9,6 +9,19 @@ import { IFaculty } from "../faculty/FacultyList";
 interface Props {
   yearOption: Option[];
 }
+export interface FacultyReport {
+  MaKhoa: string;
+  TenKhoa: string;
+  SoDeTai: number;
+  SoSV: number;
+  DiemMin: number;
+  DiemMax: number;
+  DiemTB: number;
+  TiLeDau: number;
+  TiLeRot: number;
+  TiLeThiLai: number;
+}
+
 export function ReportFaculty({ yearOption }: Props) {
   const [param, setParam] = useState<{
     limit: number;
@@ -20,7 +33,7 @@ export function ReportFaculty({ yearOption }: Props) {
     year: null,
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [data, setData] = useState<IFaculty[]>([]);
+  const [data, setData] = useState<FacultyReport[]>([]);
   const [totalRecords, setTotalReocrds] = useState<number>();
   const loadData = async () => {
     setIsLoading(true);
@@ -68,7 +81,7 @@ export function ReportFaculty({ yearOption }: Props) {
               onChange={(opt) =>
                 setParam({ ...param, year: opt.value?.toString() || null })
               }
-              placeholder="Chọn khóa"
+              placeholder="Chọn niên khóa..."
             />
           </div>
         </div>
@@ -80,11 +93,14 @@ export function ReportFaculty({ yearOption }: Props) {
               <tr className="bg-purple-100 text-left">
                 <th className="p-3">Mã khoa</th>
                 <th className="p-3">Tên khoa</th>
-                <th className="p-3">Niên khóa</th>
                 <th className="p-3">Số đề tài</th>
-                <th className="p-3">Điểm cao nhất</th>
-                <th className="p-3">Điểm thấp nhất</th>
-                <th className="p-3">Điểm trung bình</th>
+                <th className="p-3">Số sinh viên</th>
+                <th className="p-3">Điểm Min</th>
+                <th className="p-3">Điểm Max</th>
+                <th className="p-3">Điểm TB</th>
+                <th className="p-3">TL Đâu</th>
+                <th className="p-3">TL Rớt</th>
+                <th className="p-3">TL Thi lại</th>
               </tr>
             </thead>
             <tbody>
@@ -98,11 +114,14 @@ export function ReportFaculty({ yearOption }: Props) {
                       {row.MaKhoa}
                     </td>
                     <td className="p-3">{row.TenKhoa}</td>
-                    <td className="p-3">{row.MaNamHoc}</td>
                     <td className="p-3">{row.SoDeTai}</td>
-                    <td className="p-3">{row.DiemCaoNhat}</td>
-                    <td className="p-3">{row.DiemThapNhat}</td>
-                    <td className="p-3">{row.DiemTrungBinh}</td>
+                    <td className="p-3">{row.SoSV}</td>
+                    <td className="p-3">{row.DiemMin}</td>
+                    <td className="p-3">{row.DiemMax}</td>
+                    <td className="p-3">{row.DiemTB}</td>
+                    <td className="p-3">{`${row.TiLeDau}%`}</td>
+                    <td className="p-3">{`${row.TiLeRot}%`}</td>
+                    <td className="p-3">{`${row.TiLeThiLai}%`}</td>
                   </tr>
                 ))
               ) : (
@@ -117,7 +136,7 @@ export function ReportFaculty({ yearOption }: Props) {
         </div>
 
         {/* Pagination */}
-        <div className="flex justify-center items-center mt-6 pt-4  text-sm text-gray-600">
+        <div className="flex justify-end items-end mt-6 pt-4  text-sm text-gray-600">
           <Pagination
             currentPage={param.skip / param.limit + 1 || 1}
             totalLength={totalRecords || 0}
@@ -128,7 +147,6 @@ export function ReportFaculty({ yearOption }: Props) {
           />
         </div>
       </div>
-      
     </>
   );
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 
 export interface Option {
@@ -25,15 +25,29 @@ export default function SelectBox({
   isLoading,
 }: SelectBoxProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  // ✅ đóng khi click ra ngoài
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (boxRef.current && !boxRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleSelect = (opt: Option) => {
     onChange(opt);
     setIsOpen(false);
   };
+
   return (
-    <div className="relative col-span-1">
+    <div ref={boxRef} className="relative col-span-1">
       <button
         type="button"
-        disabled={isDisabled} // ✅ thêm biến disable
+        disabled={isDisabled}
         onClick={() => !isDisabled && setIsOpen(!isOpen)}
         className={`flex justify-between items-center w-full border rounded-xl px-3 py-2 shadow-sm 
       ${
@@ -55,17 +69,17 @@ export default function SelectBox({
       {!isLoading && !isDisabled && isOpen && (
         <div className="absolute mt-2 w-full bg-white border rounded-xl shadow-lg z-50 max-h-64 overflow-hidden">
           <ul className="max-h-40 overflow-auto">
-            {options.map((opt) => (
+            {options.map((o) => (
               <li
-                key={opt.value}
-                onClick={() => handleSelect(opt)}
+                key={o.value}
+                onClick={() => handleSelect(o)}
                 className={`px-4 py-2 cursor-pointer hover:bg-blue-100 ${
-                  opt?.value === opt.value
+                  opt?.value === o.value
                     ? "bg-blue-50 font-semibold text-blue-700"
                     : ""
                 }`}
               >
-                {opt.label}
+                {o.label}
               </li>
             ))}
           </ul>

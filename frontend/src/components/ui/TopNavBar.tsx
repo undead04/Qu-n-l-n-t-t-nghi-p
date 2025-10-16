@@ -7,7 +7,6 @@ export default function TopNavBar() {
   const pathname = usePathname();
 
   const menus = [
-    { id: "trangchu", label: "Trang chủ", path: "/home" },
     { id: "sinhvien", label: "Sinh viên", path: "/student" },
     { id: "giaovien", label: "Giáo viên", path: "/teacher" },
     { id: "hoidong", label: "Hội đồng", path: "/council" },
@@ -16,9 +15,15 @@ export default function TopNavBar() {
   ];
 
   return (
-    <div className="sticky top-0 z-50 w-full bg-white shadow px-4 py-2 flex gap-2">
+    <div className="sticky top-0 z-50 w-full bg-white shadow px-4 py-2 flex gap-2 items-center">
+      {/* Các menu còn lại */}
       {menus.map((menu) => {
-        const isActive = pathname.startsWith(menu.path);
+        const isActive =
+          (menu.id === "sinhvien" &&
+            (pathname === "/" || pathname.startsWith("/student"))) ||
+          pathname === menu.path ||
+          pathname.startsWith(menu.path + "/");
+
         return (
           <Link key={menu.id} href={menu.path}>
             <Button variant={isActive ? "default" : "outline"}>

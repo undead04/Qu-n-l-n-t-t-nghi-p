@@ -5,10 +5,11 @@ import { Option } from "./SelectBox";
 
 interface Prop {
   options: Option[];
+  value?: Option | null;
 }
 
-export default function SearchableSelect({ options }: Prop) {
-  const [selected, setSelected] = useState<Option | null>(null);
+export default function SearchableSelect({ options, value }: Prop) {
+  const [selected, setSelected] = useState<Option | null>(value || null);
 
   return (
     <div className="w-80">

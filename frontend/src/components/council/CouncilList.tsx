@@ -44,6 +44,7 @@ interface CouncilListProps {
   sortOptions: Option[];
   onSelectSort: (otp: any) => void;
   isLoading: boolean;
+  listYear: Option[];
 }
 
 export function CouncilList({
@@ -57,19 +58,20 @@ export function CouncilList({
   onSelectFaculty,
   handleOpen,
   params,
+  listYear,
   handleOpenDelete,
   isLoading,
 }: CouncilListProps) {
   const router = useRouter();
-  const handleNavigate = (id: string) => {
-    router.push(`/council/${id}`);
+  const handleNavigate = (id: string, MaKhoa: number) => {
+    router.push(`/council/${id}?MaKhoa=${MaKhoa}`);
   };
   const handleConvert = () => {
     const SortOrder = params.sortOrder;
     const sortBy = params.sortBy;
-    if (sortBy == "MaHD" && SortOrder == "ASC") {
+    if (sortBy == "MaHD" && SortOrder == "DESC") {
       return sortOptions.find((op) => op.value == 1) || null;
-    } else if (sortBy == "MaHD" && SortOrder == "DESC") {
+    } else if (sortBy == "MaHD" && SortOrder == "ASC") {
       return sortOptions.find((op) => op.value == 2) || null;
     } else if (sortBy == "UpdatedAt" && SortOrder == "DESC") {
       return sortOptions.find((op) => op.value == 3) || null;
@@ -79,16 +81,6 @@ export function CouncilList({
       return null;
     }
   };
-  const listYear: Option[] = [
-    {
-      label: "2024-2025",
-      value: "2024-2025",
-    },
-    {
-      label: "2025-2026",
-      value: "2025-2026",
-    },
-  ];
   return (
     <>
       <div className="px-6 py-6 bg-gradient-to-tr from-purple-50 to-white rounded-2xl shadow-lg border space-y-6">
@@ -126,7 +118,14 @@ export function CouncilList({
               placeholder="🏫 Chọn khoa"
             />
           </div>
-
+          <div className="md:col-span-2">
+            <SelectBox
+              options={listYear}
+              opt={listYear.find((op) => op.value == params.year) || null}
+              onChange={(opt) => onSelectFaculty("year", opt.value)}
+              placeholder="Chọn khóa"
+            />
+          </div>
           {/* Sắp xếp */}
           <div className="md:col-span-3">
             <SelectBox
@@ -136,14 +135,7 @@ export function CouncilList({
               placeholder="↕️ Sắp xếp"
             />
           </div>
-          <div className="md:col-span-2">
-            <SelectBox
-              options={listYear}
-              opt={listYear.find((op) => op.value == params.year) || null}
-              onChange={(opt) => onSelectFaculty("year", opt.value)}
-              placeholder="Chọn khóa"
-            />
-          </div>
+
           {/* Actions */}
           <div className="md:col-span-1 justify-self-end">
             <Button onClick={() => handleOpen(initCouncil)}>➕ Tạo</Button>
@@ -156,7 +148,6 @@ export function CouncilList({
             <thead>
               <tr className="bg-purple-100 text-left">
                 <th className="p-3">Mã hội đồng</th>
-                <th className="p-3">Khoa</th>
                 <th className="p-3">Địa chỉ</th>
                 <th className="p-3">Ngày bảo vệ</th>
                 <th className="p-3">Chủ tịch</th>
@@ -177,7 +168,6 @@ export function CouncilList({
                     <td className="p-3 font-medium text-gray-700">
                       {row.MaHD}
                     </td>
-                    <td className="p-3">{row.TenKhoa}</td>
                     <td className="p-3">{row.DiaChiBaoVe}</td>
                     <td className="p-3">{formatDate(row.NgayBaoVe)}</td>
                     <td className="p-3">{row.TenGVChuTich}</td>
@@ -189,7 +179,7 @@ export function CouncilList({
                       <div className="flex gap-2 justify-center">
                         <Button
                           className="bg-blue-500 text-white hover:bg-blue-600"
-                          onClick={() => handleNavigate(row.MaHD!)}
+                          onClick={() => handleNavigate(row.MaHD!, row.MaKhoa)}
                         >
                           👁 Xem
                         </Button>
@@ -226,9 +216,15 @@ export function CouncilList({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="p-6 text-center text-gray-500">
-                    📭 Không có dữ liệu
-                  </td>
+                  {params.deCode == null ? (
+                    <td colSpan={9} className="p-6 text-center text-gray-500">
+                      📭 Vui lòng chọn khoa
+                    </td>
+                  ) : (
+                    <td colSpan={9} className="p-6 text-center text-gray-500">
+                      📭 Không có dữ liệu
+                    </td>
+                  )}
                 </tr>
               )}
             </tbody>
