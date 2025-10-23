@@ -1,5 +1,6 @@
 "use client";
 import { ReportTeacher } from "@/components/reports/reportTeacher";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { Option } from "@/components/ui/SelectBox";
 import axios from "axios";
 import React, { useEffect } from "react";
@@ -38,8 +39,10 @@ export default function Page() {
   return (
     <>
       <div className="space-y-6">
-        {!isLoading && (
+        {!isLoading ? (
           <ReportTeacher yearOption={listYear} facultyOption={facultyOptions} />
+        ) : (
+          <LoadingSpinner />
         )}
       </div>
     </>

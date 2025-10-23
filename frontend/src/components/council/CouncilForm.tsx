@@ -43,6 +43,7 @@ interface IProp {
   ) => void;
   onChangeSelect: (name: string, opt: Option) => void;
   onSubmit: (e: React.FormEvent) => void;
+  listYear: Option[];
 }
 
 export function AddCouncilForm({
@@ -54,20 +55,11 @@ export function AddCouncilForm({
   onChangeSelect,
   onSubmit,
   onSetInput,
+  listYear,
 }: IProp) {
   const [listTeacher, setListTeacher] = useState<ITeacher[]>([]);
   const [dataOption, setDataOption] = useState<Option[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const listYear: Option[] = [
-    {
-      label: "2024-2025",
-      value: "2024-2025",
-    },
-    {
-      label: "2025-2026",
-      value: "2025-2026",
-    },
-  ];
   // Lấy danh sách giáo viên
   const fetchTeachers = async () => {
     try {

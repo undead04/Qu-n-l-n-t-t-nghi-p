@@ -6,19 +6,21 @@ import { Input } from "../ui/Input";
 import { Option } from "../ui/SelectBox";
 import axios from "axios";
 import { Button } from "../ui/Button";
+import { IStudent } from "../student/StudentList";
 
-interface Student {
-  MaSV: string;
-  TenSV: string;
-  DiaChi: string;
-  TenKhoa?: string;
-}
 interface Prop {
   onClose: () => void;
   isOpen: boolean;
   MaDA: string;
   MaKhoa: number;
   onLoad: () => void;
+  MaGV: string;
+}
+interface Student {
+  MaSV: string;
+  TenSV: string;
+  DiaChi: string;
+  TenKhoa?: string;
 }
 export default function AddStudentModal({
   onClose,
@@ -26,6 +28,7 @@ export default function AddStudentModal({
   MaDA,
   onLoad,
   MaKhoa,
+  MaGV,
 }: Prop) {
   const [searchText, setSearchText] = useState("");
   const [options, setOptions] = useState<Option[]>([]);
@@ -65,6 +68,7 @@ export default function AddStudentModal({
       .post(`http://localhost:4000/projects/addStudent/${MaDA}`, {
         MaSV: selected.value,
         MaKhoa,
+        MaGV,
       })
       .then((res) => {
         alert("✅ Thêm sinh viên thành công");

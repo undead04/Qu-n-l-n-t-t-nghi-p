@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+"use client";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import "../globals.css";
 import TopNavBar from "@/components/ui/TopNavBar";
+import { UserProvider } from "@/context/UserContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,11 +14,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Quản lý đề tài",
-  description: "App quản lý sinh viên, đề tài, hội đồng, khoa",
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,11 +24,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen`}
       >
-        {/* Thanh sidebar ngang */}
-        <TopNavBar />
-
-        {/* Nội dung chính */}
-        <main className="mx-auto max-w-7xl px-6 py-6">{children}</main>
+        <UserProvider>
+          {/* Thanh sidebar ngang */}
+          <TopNavBar />
+          {/* Nội dung chính */}
+          <main className="mx-auto max-w-7xl px-6 py-6">{children}</main>
+        </UserProvider>
       </body>
     </html>
   );

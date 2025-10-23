@@ -44,6 +44,22 @@ router.get("/students/history/:id", async (req, res) => {
   }
 });
 
+router.get("/students/project/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const MaKhoa = Number(req.query.MaKhoa);
+    const pool = await getConnectionByKhoa(MaKhoa);
+    const result = await pool
+      .request()
+      .input("MaSV", sql.VarChar(20), id)
+      .execute("usp_getProjectStudent");
+    res.json(result.recordset);
+  } catch (err: any) {
+    console.error("❌ Lỗi khi gọi usp_getProjectStudent:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get("/students/:id", async (req, res) => {
   try {
     const { id } = req.params;

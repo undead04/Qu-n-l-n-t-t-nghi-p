@@ -12,6 +12,7 @@ router.get("/councils", async (req, res) => {
       .input("limit", sql.Int, parseInt(req.query.limit as string) || 10)
       .input("skip", sql.Int, parseInt(req.query.skip as string) || 0)
       .input("MaNamHoc", sql.VarChar(20), (req.query.year as string) || null)
+      .input("MaGV", sql.VarChar(20), req.query.MaGV)
       .input(
         "SortBy",
         sql.NVarChar(250),
@@ -124,6 +125,8 @@ router.get("/councils/topics/:id", async (req, res) => {
     const result = await pool
       .request()
       .input("MaHD", sql.VarChar(20), id)
+      .input("limit", sql.Int, req.query.limit)
+      .input("skip", sql.Int, req.query.skip)
       .execute("usp_listDoanInHoiDong");
     const data = result.recordset;
     return res.json(data);

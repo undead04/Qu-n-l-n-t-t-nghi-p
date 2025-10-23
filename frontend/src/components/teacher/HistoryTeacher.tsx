@@ -10,6 +10,7 @@ import { IPagination, Pagination } from "../ui/Pagination";
 import SearchBox from "../ui/SearchBox";
 import SelectBox, { Option } from "../ui/SelectBox";
 import { convertSelectBox } from "@/utils/convertSelectBox";
+import LoadingSpinner from "../ui/LoadingSpinner";
 
 interface Props {
   id: string;
@@ -45,7 +46,7 @@ export default function HistoryTeacher({ id, MaKhoa }: Props) {
   ];
   const fetchTeacher = async () => {
     try {
-      const res = await axios.get(`http://localhost:4000/teachers/${id}`,{
+      const res = await axios.get(`http://localhost:4000/teachers/${id}`, {
         params: { MaKhoa },
       });
       setTeacher(res.data[0]);
@@ -114,9 +115,10 @@ export default function HistoryTeacher({ id, MaKhoa }: Props) {
     newParams.set("skip", "0"); // reset về trang đầu
     router.push(`?${newParams.toString()}`);
   };
+  if (isLoading) return <LoadingSpinner />;
   return (
     <>
-      {!isLoading && teacher && (
+      {teacher && (
         <div className="w-full max-w-5xl mx-auto space-y-6">
           {/* Thông tin đề tài */}
           <div className="bg-white shadow rounded-lg p-6 border">

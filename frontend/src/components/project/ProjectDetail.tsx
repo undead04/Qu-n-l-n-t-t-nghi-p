@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import { formatDate } from "@/utils/formatDate";
 import axios from "axios";
 import { IProject } from "./ProjectList";
-import { TableStudent } from "./TableStudent";
-import { ScoreList } from "./ScoreList";
+import LoadingSpinner from "../ui/LoadingSpinner";
 
 interface Props {
   MaDA: string;
@@ -32,14 +31,15 @@ export default function ProjectDetail({ MaDA, MaKhoa }: Props) {
 
     loadData();
   }, []);
-
+  if (isLoading) return <LoadingSpinner />;
   return (
     <>
-      {!isLoading && project && (
-        <div className="w-full max-w-5xl mx-auto space-y-6">
-          {/* Thông tin đề tài */}
+      {project && (
+        <>
           <div className="bg-white shadow rounded-lg p-6 border">
-            <h2 className="text-xl font-semibold mb-2">{project?.TenDT}</h2>
+            <h2 className="text-xl font-semibold mb-2">
+              Đồ án: {project?.TenDT}
+            </h2>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="font-medium">Mã đề tài:</span> {project.MaDT}
@@ -62,13 +62,32 @@ export default function ProjectDetail({ MaDA, MaKhoa }: Props) {
                 <span className="font-medium">Ngày kết thúc:</span>{" "}
                 {formatDate(project?.ThoiGianKetThuc)}
               </div>
+              {project.MaHD ? (
+                <>
+                  <div>
+                    <span className="font-medium">Hội đồng:</span>{" "}
+                    {project.MaHD}
+                  </div>
+                  <div>
+                    <span className="font-medium">Địa điểm:</span>{" "}
+                    {project.DiaChiBaoVe}
+                  </div>
+                  <div>
+                    <span className="font-medium">Ngày bào vệ:</span>{" "}
+                    {formatDate(project.NgayBaoVe)}
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <span className="font-medium">
+                    Hội đồng:{" "}
+                    <span className="text-red-600">Chưa có hội đồng</span>
+                  </span>
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Bảng sinh viên */}
-          <TableStudent MaDA={MaDA} MaKhoa={MaKhoa}/>
-          <ScoreList MaDA={MaDA} MaKhoa={MaKhoa}/>
-        </div>
+        </>
       )}
     </>
   );

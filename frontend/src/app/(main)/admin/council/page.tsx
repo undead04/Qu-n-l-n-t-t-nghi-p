@@ -11,6 +11,7 @@ import {
 } from "@/components/council/CouncilForm";
 import { Option } from "@/components/ui/SelectBox";
 import DeleteModal from "@/components/ui/DeleteModal";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 export default function Page() {
   const [records, setRecords] = useState<ICouncil[]>([]);
   const [pagination, setPagination] = useState<IPagination>({
@@ -175,8 +176,11 @@ export default function Page() {
     }
   };
   const handleConfirm = async () => {
+    console.log(input);
     await axios
-      .delete(`http://localhost:4000/councils/${input.MaHD}`)
+      .delete(`http://localhost:4000/councils/${input.MaHD}`, {
+        params: { MaKhoa: input.MaKhoa },
+      })
       .then((res) => {
         alert("✅ Xóa thành công!");
         handleCloseDelete();
@@ -242,45 +246,44 @@ export default function Page() {
       await handleUpdate();
     }
   };
+  if (loading) return <LoadingSpinner />;
   return (
     <>
-      {!loading && (
-        <>
-          <AddCouncilForm
-            onSetInput={setInput}
-            onSubmit={handleSubmit}
-            input={input}
-            handleClose={handleClose}
-            onChange={handleChange}
-            onChangeSelect={handleChangeSelect}
-            facultyOptions={facultyOptions}
-            isOpen={isOpen}
-          />
-          <DeleteModal
-            onClose={handleCloseDelete}
-            onConfirm={handleConfirm}
-            open={isOpenDel}
-            title="Xóa hội đồng"
-            description={`Bạn có muốn xóa hội đồng này không ${input.MaHD}`}
-          />
+      <AddCouncilForm
+        listYear={listYear}
+        onSetInput={setInput}
+        onSubmit={handleSubmit}
+        input={input}
+        handleClose={handleClose}
+        onChange={handleChange}
+        onChangeSelect={handleChangeSelect}
+        facultyOptions={facultyOptions}
+        isOpen={isOpen}
+      />
+      <DeleteModal
+        onClose={handleCloseDelete}
+        onConfirm={handleConfirm}
+        open={isOpenDel}
+        title="Xóa hội đồng"
+        description={`Bạn có muốn xóa hội đồng này không ${input.MaHD}`}
+      />
 
-          <CouncilList
-            listYear={listYear}
-            sortOptions={sortOptions}
-            onSelectSort={handleSelectSort}
-            handleOpen={handleOpen}
-            params={param}
-            onSelectFaculty={handleSelect}
-            facultyOptions={facultyOptions}
-            data={records}
-            isLoading={loadingData}
-            pagination={pagination}
-            onSearch={handleSearch}
-            onPageChange={handlePageChange}
-            handleOpenDelete={handleOpenDelete}
-          />
-        </>
-      )}
+      <CouncilList
+        disable={true}
+        listYear={listYear}
+        sortOptions={sortOptions}
+        onSelectSort={handleSelectSort}
+        handleOpen={handleOpen}
+        params={param}
+        onSelectFaculty={handleSelect}
+        facultyOptions={facultyOptions}
+        data={records}
+        isLoading={loadingData}
+        pagination={pagination}
+        onSearch={handleSearch}
+        onPageChange={handlePageChange}
+        handleOpenDelete={handleOpenDelete}
+      />
     </>
   );
 }

@@ -8,10 +8,18 @@ import scoreRouter from "./routes/scoreRouter";
 import projectRouter from "./routes/projectRouter";
 import reportRouter from "./routes/reportRouter";
 import yearRouter from "./routes/yearRouter";
+import { preloadAllKhoaConnections } from "./db/dbRouter";
+import fileRouter from "./routes/fileRouter";
+import loginRouter from "./routes/loginRouter";
 const app = express();
 app.use(cors());
 app.use(express.json());
+// Middleware cho phép upload file
 
+(async () => {
+  await preloadAllKhoaConnections();
+  console.log("🚀 All khoa databases connected and ready!");
+})();
 // router cho khoa
 app.use("/", facultiesRouter);
 // router cho học sinh
@@ -28,4 +36,6 @@ app.use("/", projectRouter);
 app.use("/", reportRouter);
 // year
 app.use("/", yearRouter);
+app.use("/", loginRouter);
+app.use("/", fileRouter);
 app.listen(4000, () => console.log("Server chạy ở http://localhost:4000"));

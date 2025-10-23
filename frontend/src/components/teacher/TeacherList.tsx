@@ -64,7 +64,7 @@ export function TeacherList({
   };
   const router = useRouter();
   const handleNavigation = () => {
-    router.push(`/teacher/report`);
+    router.push(`/admin/teacher/report`);
   };
   return (
     <div className="px-6 py-6 bg-gradient-to-tr from-green-50 to-white rounded-2xl shadow-lg border space-y-6">
@@ -128,7 +128,7 @@ export function TeacherList({
               <th className="p-3">Số điện thoại</th>
               <th className="p-3">Học vị</th>
               <th className="p-3">Chuyên nghành</th>
-              <th className="p-3">Thao Tác</th>
+              {/* <th className="p-3">Thao Tác</th> */}
             </tr>
           </thead>
           <tbody>
@@ -145,14 +145,14 @@ export function TeacherList({
                   <td className="p-3">{row.HocVi}</td>
                   <td className="p-3">{row.ChuyenNganh}</td>
                   <td className="p-3">
-                    <div className="flex gap-2 justify-center">
+                    {/* <div className="flex gap-2 justify-center">
                       <Button
                         className="bg-blue-500 text-white hover:bg-blue-600"
                         onClick={() => handleView(row.MaGV, row.MaKhoa)}
                       >
                         👁 Xem
                       </Button>
-                    </div>
+                    </div> */}
                   </td>
                 </tr>
               ))

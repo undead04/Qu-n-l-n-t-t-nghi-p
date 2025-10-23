@@ -5,7 +5,7 @@ import { IPagination, Pagination } from "../ui/Pagination";
 import SearchBox from "../ui/SearchBox";
 import SelectBox, { Option } from "../ui/SelectBox";
 import { useRouter } from "next/navigation";
-import { IInputProject, initProject } from "./ProjectForm";
+import { IInputProject } from "./ProjectForm";
 import { convertSelectBox } from "@/utils/convertSelectBox";
 
 export interface IProject {
@@ -21,6 +21,9 @@ export interface IProject {
   SoSV: number;
   DiemTrungBinh?: number;
   KetQua: string;
+  MaHD:string;
+  DiaChiBaoVe:string;
+  NgayBaoVe:Date
 }
 
 interface ProjectListProps {

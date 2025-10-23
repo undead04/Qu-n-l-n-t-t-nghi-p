@@ -8,7 +8,8 @@ import { Button } from "../ui/Button";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { Label } from "../ui/label";
 import { ITeacher } from "../teacher/TeacherList";
-
+import { IFaculty } from "../faculty/FacultyList";
+import { convertSelectBox } from "@/utils/convertSelectBox";
 export interface IInputProject {
   MaDT?: string;
   TenDT: string;
@@ -19,84 +20,48 @@ export interface IInputProject {
   MaKhoa: number | null;
 }
 
-export const initProject: IInputProject = {
-  TenDT: "",
-  MaKhoa: null,
-  MaGVHuongDan: "",
-  MaNamHoc: "",
-  ThoiGianKetThuc: new Date().toISOString().split("T")[0],
-  ThoiGianBatDau: new Date().toISOString().split("T")[0],
-};
-
 interface Prop {
-  onSetInput: (value: IInputProject) => void;
   handleClose: () => void;
   isOpen: boolean;
-  facultyOptions: Option[];
   input: IInputProject;
   onChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
   onChangeSelect: (name: string, opt: Option) => void;
   onSubmit: (e: React.FormEvent) => void;
+  listYear: Option[];
+  listTeacher: ITeacher[];
+  listFaculty: IFaculty[];
+  onSetInput: (input: IInputProject) => void;
 }
 
 export default function ProjectForm({
   input,
-  facultyOptions,
   onSubmit,
   onChange,
   handleClose,
   onChangeSelect,
-  onSetInput,
   isOpen,
+  listYear,
+  listTeacher,
+  listFaculty,
+  onSetInput,
 }: Prop) {
-  const [listTeacher, setListTeacher] = useState<ITeacher[]>([]);
   const [dataOption, setDataOption] = useState<Option[]>([]);
-  const listYear: Option[] = [
-    {
-      label: "2024-2025",
-      value: "2024-2025",
-    },
-    {
-      label: "2025-2026",
-      value: "2025-2026",
-    },
-  ];
-
-  // Lấy danh sách giáo viên
-  const fetchTeachers = async () => {
-    try {
-      if (input.MaKhoa) {
-        const res = await axios.get("http://localhost:4000/teachers", {
-          params: { limit: 100, MaKhoa: input.MaKhoa },
-        });
-        setListTeacher(res.data.data);
-      }
-    } catch (err) {
-      alert("⚠️ Lỗi khi lấy danh sách giáo viên");
-    }
-  };
-
-  // Khi mount thì fetch data
-  useEffect(() => {
-    fetchTeachers();
-  }, [input.MaKhoa]);
-
+  const [facultyOption, setFacultyOption] = useState<Option[]>([]);
   // Khi thay đổi khoa thì lọc lại giáo viên
   useEffect(() => {
-    // Lọc giáo viên theo khoa
-    const teachers = listTeacher.filter((item) => item.MaKhoa === input.MaKhoa);
-    const teacherOptions = teachers.map((item) => ({
+    const teacherOptions = listTeacher.map((item) => ({
       label: `${item.MaGV} - ${item.TenGV}`,
       value: item.MaGV,
     }));
     setDataOption(teacherOptions);
-    if (input.MaDT == null) {
-      // Reset lại các field liên quan
-      onSetInput({ ...input, MaGVHuongDan: "" });
-    }
-  }, [input.MaKhoa, listTeacher]);
+    const facultyOptions = listFaculty.map((item) => ({
+      label: `${item.TenKhoa}`,
+      value: item.MaKhoa,
+    }));
+    setFacultyOption(facultyOptions);
+  }, [listTeacher, listFaculty]);
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -104,7 +69,7 @@ export default function ProjectForm({
         {/* Header */}
         <CardHeader>
           <CardTitle>
-            🎓 {input.MaDT == null ? "Thêm" : "Chỉnh sữa"} đồ án
+            🎓 {input.MaDT == null ? "Thêm" : "Chỉnh sửa"} đề tài
           </CardTitle>
         </CardHeader>
 
@@ -119,29 +84,37 @@ export default function ProjectForm({
               <div>
                 <Label htmlFor="MaKhoa">Khoa</Label>
                 <SelectBox
-                  isDisabled={!!input.MaDT}
-                  opt={
-                    facultyOptions.find((op) => op.value == input.MaKhoa) ||
-                    null
-                  }
-                  options={facultyOptions}
-                  placeholder="Chọn khoa"
+                  isDisabled
+                  opt={convertSelectBox(facultyOption, input.MaKhoa)}
+                  options={facultyOption}
                   onChange={(opt) => onChangeSelect("MaKhoa", opt)}
                 />
               </div>
+
+              {/* Giáo viên hướng dẫn */}
+              <div>
+                <Label htmlFor="MaGVHuongDan">Giáo viên hướng dẫn</Label>
+                <SelectBox
+                  isDisabled
+                  opt={convertSelectBox(dataOption, input.MaGVHuongDan)}
+                  options={dataOption}
+                  placeholder="Chọn giáo viên"
+                  onChange={(opt) => onChangeSelect("MaGVHuongDan", opt)}
+                />
+              </div>
+
               {/* Năm học */}
               <div>
                 <Label htmlFor="MaNamHoc">Khóa</Label>
                 <SelectBox
                   isDisabled={!!input.MaDT}
-                  opt={
-                    listYear.find((op) => op.value == input.MaNamHoc) || null
-                  }
+                  opt={convertSelectBox(listYear, input.MaNamHoc)}
                   options={listYear}
                   placeholder="Chọn năm học"
                   onChange={(opt) => onChangeSelect("MaNamHoc", opt)}
                 />
               </div>
+
               {/* Tên đề tài */}
               <div>
                 <Label htmlFor="TenDT">Tên đề tài</Label>
@@ -151,19 +124,6 @@ export default function ProjectForm({
                   name="TenDT"
                   value={input.TenDT}
                   onChange={onChange}
-                />
-              </div>
-              {/* Giáo viên hướng dẫn */}
-              <div>
-                <Label htmlFor="MaGVHuongDan">Giáo viên hướng dẫn</Label>
-                <SelectBox
-                  opt={
-                    dataOption.find((op) => op.value == input.MaGVHuongDan) ||
-                    null
-                  }
-                  options={dataOption}
-                  placeholder="Chọn giáo viên"
-                  onChange={(opt) => onChangeSelect("MaGVHuongDan", opt)}
                 />
               </div>
 
@@ -191,7 +151,6 @@ export default function ProjectForm({
                 />
               </div>
             </div>
-
             {/* Footer */}
             <div className="flex justify-end gap-3 pt-4 border-t">
               <Button type="button" variant="outline" onClick={handleClose}>

@@ -8,13 +8,22 @@ import { IPagination, Pagination } from "../ui/Pagination";
 import DeleteModal from "../ui/DeleteModal";
 import { useRouter } from "next/navigation";
 import { IProject } from "../project/ProjectList";
-import { IInputProject, initProject } from "../project/ProjectForm";
+import { IInputProject } from "../project/ProjectForm";
 import AddCouncilModal from "./AddTopicToCouncilForm";
+import LoadingSpinner from "../ui/LoadingSpinner";
 interface Props {
   MaHD: string;
   MaKhoa: number;
 }
 export default function CouncilDetail({ MaHD, MaKhoa }: Props) {
+  const initProject: IInputProject = {
+    TenDT: "",
+    MaNamHoc: "",
+    ThoiGianBatDau: "",
+    ThoiGianKetThuc: "",
+    MaGVHuongDan: "",
+    MaKhoa: 0 || null,
+  };
   const [council, setCouncil] = useState<ICouncil>();
   const [projects, setProjects] = useState<IProject[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -43,7 +52,7 @@ export default function CouncilDetail({ MaHD, MaKhoa }: Props) {
       const res = await axios.get(
         `http://localhost:4000/councils/topics/${MaHD}`,
         {
-          params: { MaKhoa },
+          params: { MaKhoa, limit: 10, skip },
         }
       );
 
@@ -96,7 +105,7 @@ export default function CouncilDetail({ MaHD, MaKhoa }: Props) {
   const handleNavigate = (id: string, MaKhoa: number) => {
     router.push(`/project/${id}?MaKhoa=${MaKhoa}`);
   };
-
+  if (isLoading) return <LoadingSpinner />;
   return (
     <>
       <DeleteModal
@@ -111,7 +120,7 @@ export default function CouncilDetail({ MaHD, MaKhoa }: Props) {
         MaHD={MaHD}
         MaKhoa={MaKhoa}
       />
-      {!isLoading && council && (
+      {council && (
         <div className="w-full max-w-5xl mx-auto space-y-6">
           {/* Thông tin đề tài */}
           <div className="bg-white shadow rounded-lg p-6 border">
@@ -165,6 +174,7 @@ export default function CouncilDetail({ MaHD, MaKhoa }: Props) {
                     <th className="p-3">Giáo viên</th>
                     <th className="p-3">Bắt đầu</th>
                     <th className="p-3">Kết thúc</th>
+                    <th className="p-3">Số SV</th>
                     <th className="p-3 text-center">Thao tác</th>
                   </tr>
                 </thead>
@@ -186,6 +196,7 @@ export default function CouncilDetail({ MaHD, MaKhoa }: Props) {
                         <td className="p-3">
                           {formatDate(row.ThoiGianKetThuc)}
                         </td>
+                        <td className="p-3">{row.SoSV}</td>
                         <td className="p-3">
                           <div className="flex gap-2 justify-center">
                             <Button

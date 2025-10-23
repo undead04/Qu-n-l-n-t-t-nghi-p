@@ -87,7 +87,7 @@ router.get("/projects", async (req, res) => {
         sql.NVarChar(250),
         (req.query.sortOrder as string) || "MaHD"
       )
-      .input("MaGVHuongDan", sql.VarChar(20), req.query.MaGVHuongDan || null)
+      .input("MaGV", sql.VarChar(20), req.query.MaGVHuongDan || null)
       .execute("usp_listDoan");
     const recordsets = result.recordsets as sql.IRecordSet<any>[];
     res.json({
@@ -143,6 +143,7 @@ router.put("/projects/:id", async (req, res) => {
     const { TenDT, MaGVHuongDan, ThoiGianBatDau, ThoiGianKetThuc, MaKhoa } =
       req.body;
     const pool = await getConnectionByKhoa(MaKhoa);
+
     const result = await pool
       .request()
       .input("MaDT", sql.VarChar(20), id)
@@ -156,7 +157,7 @@ router.put("/projects/:id", async (req, res) => {
       .input(
         "ThoiGianKetThuc",
         sql.Date,
-        ThoiGianKetThuc ? new Date(ThoiGianBatDau) : null
+        ThoiGianKetThuc ? new Date(ThoiGianKetThuc) : null
       )
       .execute("usp_updateDoan");
 
@@ -169,11 +170,12 @@ router.put("/projects/:id", async (req, res) => {
 router.delete("/projects/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { MaKhoa } = req.body;
-    const pool = await getConnectionByKhoa(MaKhoa);
+
+    const pool = await getConnectionByKhoa(Number(req.query.MaKhoa));
     const result = await pool
       .request()
       .input("MaDoAn", sql.NVarChar(50), id)
+      .input("MaGV", sql.VarChar(20), req.query.MaGV)
       .execute("usp_deleteDoan");
 
     res.json({ success: true, message: "Xóa đồ án thành công" });

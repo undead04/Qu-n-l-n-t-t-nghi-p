@@ -29,7 +29,7 @@ export function FacultyList({
 }: FacultyListProps) {
   const router = useRouter();
   const handleNavigation = () => {
-    router.push(`/faculty/report`);
+    router.push(`/admin/faculty/report`);
   };
   return (
     <div className="px-6 py-6 bg-gradient-to-tr from-green-50 to-white rounded-2xl shadow-lg border space-y-6">

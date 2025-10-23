@@ -4,6 +4,7 @@ import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { IPagination } from "@/components/ui/Pagination";
 import { FacultyList, IFaculty } from "@/components/faculty/FacultyList";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 export default function Page() {
   const [records, setRecords] = useState<IFaculty[]>([]);
@@ -75,7 +76,7 @@ export default function Page() {
 
   return (
     <>
-      {!loading && (
+      {!loading ? (
         <FacultyList
           isLoadingData={loadingData}
           params={param}
@@ -83,6 +84,8 @@ export default function Page() {
           onSearch={handleSearch}
           onPageChange={handlePageChange}
         />
+      ) : (
+        <LoadingSpinner />
       )}
     </>
   );

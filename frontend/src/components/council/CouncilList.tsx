@@ -6,6 +6,7 @@ import SearchBox from "../ui/SearchBox";
 import SelectBox, { Option } from "../ui/SelectBox";
 import { IInputCouncil, initCouncil } from "./CouncilForm";
 import { useRouter } from "next/navigation";
+import LoadingSpinner from "../ui/LoadingSpinner";
 
 export interface ICouncil {
   MaHD: string;
@@ -40,7 +41,8 @@ interface CouncilListProps {
     sortBy: string;
     year: string | null;
   };
-  handleOpenDelete: (input: IInputCouncil) => void;
+  disable?: boolean;
+  handleOpenDelete: (input: any) => void;
   sortOptions: Option[];
   onSelectSort: (otp: any) => void;
   isLoading: boolean;
@@ -52,6 +54,7 @@ export function CouncilList({
   onSelectSort,
   data,
   facultyOptions,
+  disable,
   pagination,
   onSearch,
   onPageChange,
@@ -64,7 +67,7 @@ export function CouncilList({
 }: CouncilListProps) {
   const router = useRouter();
   const handleNavigate = (id: string, MaKhoa: number) => {
-    router.push(`/council/${id}?MaKhoa=${MaKhoa}`);
+    router.push(`/admin/council/${id}?MaKhoa=${MaKhoa}`);
   };
   const handleConvert = () => {
     const SortOrder = params.sortOrder;
@@ -81,6 +84,7 @@ export function CouncilList({
       return null;
     }
   };
+  if (isLoading) return <LoadingSpinner />;
   return (
     <>
       <div className="px-6 py-6 bg-gradient-to-tr from-purple-50 to-white rounded-2xl shadow-lg border space-y-6">
@@ -108,16 +112,18 @@ export function CouncilList({
           </div>
 
           {/* Bộ lọc */}
-          <div className="md:col-span-3">
-            <SelectBox
-              options={facultyOptions}
-              opt={
-                facultyOptions.find((op) => op.value == params.deCode) || null
-              }
-              onChange={(otp: Option) => onSelectFaculty("deCode", otp.value)}
-              placeholder="🏫 Chọn khoa"
-            />
-          </div>
+          {disable && (
+            <div className="md:col-span-3">
+              <SelectBox
+                options={facultyOptions}
+                opt={
+                  facultyOptions.find((op) => op.value == params.deCode) || null
+                }
+                onChange={(otp: Option) => onSelectFaculty("deCode", otp.value)}
+                placeholder="🏫 Chọn khoa"
+              />
+            </div>
+          )}
           <div className="md:col-span-2">
             <SelectBox
               options={listYear}
@@ -137,9 +143,11 @@ export function CouncilList({
           </div>
 
           {/* Actions */}
-          <div className="md:col-span-1 justify-self-end">
-            <Button onClick={() => handleOpen(initCouncil)}>➕ Tạo</Button>
-          </div>
+          {disable && (
+            <div className="md:col-span-1 justify-self-end">
+              <Button onClick={() => handleOpen(initCouncil)}>➕ Tạo</Button>
+            </div>
+          )}
         </div>
 
         {/* Table */}
@@ -159,7 +167,7 @@ export function CouncilList({
               </tr>
             </thead>
             <tbody>
-              {!isLoading && data && data.length > 0 ? (
+              {data && data.length > 0 ? (
                 data.map((row, index) => (
                   <tr
                     key={index}
@@ -183,33 +191,39 @@ export function CouncilList({
                         >
                           👁 Xem
                         </Button>
-                        <Button
-                          className="bg-yellow-300 hover:bg-yellow-400"
-                          onClick={() =>
-                            handleOpen({
-                              MaKhoa: row.MaKhoa,
-                              MaHD: row.MaHD,
-                              MaGVChuTich: row.MaGVChuTich,
-                              MaGVPhanBien: row.MaGVPhanBien,
-                              MaGVThuKy: row.MaGVThuKy,
-                              MaNamHoc: row.MaNamHoc,
-                              DiaChiBaoVe: row.DiaChiBaoVe,
-                              NgayBaoVe: row.NgayBaoVe.toString().split("T")[0],
-                            } as IInputCouncil)
-                          }
-                        >
-                          ✏️ Edit
-                        </Button>
-                        <Button
-                          className="bg-red-500 text-white hover:bg-red-600"
-                          onClick={() =>
-                            handleOpenDelete({
-                              MaHD: row.MaHD,
-                            } as IInputCouncil)
-                          }
-                        >
-                          🗑️ Xóa
-                        </Button>
+                        {disable && (
+                          <>
+                            <Button
+                              className="bg-yellow-300 hover:bg-yellow-400"
+                              onClick={() =>
+                                handleOpen({
+                                  MaKhoa: row.MaKhoa,
+                                  MaHD: row.MaHD,
+                                  MaGVChuTich: row.MaGVChuTich,
+                                  MaGVPhanBien: row.MaGVPhanBien,
+                                  MaGVThuKy: row.MaGVThuKy,
+                                  MaNamHoc: row.MaNamHoc,
+                                  DiaChiBaoVe: row.DiaChiBaoVe,
+                                  NgayBaoVe:
+                                    row.NgayBaoVe.toString().split("T")[0],
+                                } as IInputCouncil)
+                              }
+                            >
+                              ✏️ Edit
+                            </Button>
+                            <Button
+                              className="bg-red-500 text-white hover:bg-red-600"
+                              onClick={() =>
+                                handleOpenDelete({
+                                  MaHD: row.MaHD,
+                                  MaKhoa: row.MaKhoa,
+                                })
+                              }
+                            >
+                              🗑️ Xóa
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

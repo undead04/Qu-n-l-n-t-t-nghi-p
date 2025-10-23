@@ -5,22 +5,16 @@ import axios from "axios";
 import { IStudent } from "./StudentList";
 import { Button } from "../ui/Button";
 import { useRouter } from "next/navigation";
+import { IProject } from "../project/ProjectList";
+import LoadingSpinner from "../ui/LoadingSpinner";
 
 interface Props {
   id: string;
   MaKhoa: Number;
 }
-interface IHistory {
-  MaHD: string;
-  MaDT: string;
-  TenDT: string;
-  LanBaoVe: string;
-  NgayBaoVe: Date;
-  DiaChiBaoVe: string;
-}
 export default function HistoryCouncil({ id, MaKhoa }: Props) {
   const [student, setStudent] = useState<IStudent>();
-  const [history, setHistory] = useState<IHistory[]>([]);
+  const [history, setHistory] = useState<IProject[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const fetchStudents = async () => {
     try {
@@ -54,11 +48,12 @@ export default function HistoryCouncil({ id, MaKhoa }: Props) {
   }, []);
   const router = useRouter();
   const handleNavigate = (id: string) => {
-    router.push(`/project/${id}`);
+    router.push(`/admin/project/${id}`);
   };
+  if (isLoading) return <LoadingSpinner />;
   return (
     <>
-      {!isLoading && student && (
+      {student && (
         <div className="w-full max-w-5xl mx-auto space-y-6">
           {/* Thông tin đề tài */}
           <div className="bg-white shadow rounded-lg p-6 border">
@@ -86,12 +81,11 @@ export default function HistoryCouncil({ id, MaKhoa }: Props) {
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-purple-100 text-left">
-                    <th className="p-3">Mã HD</th>
                     <th className="p-3">Mã đề tài</th>
                     <th className="p-3">Tên đề tài</th>
-                    <th className="p-3">Địa chỉ</th>
-                    <th className="p-3">Ngày bảo vệ</th>
-                    <th className="p-3">Lần bảo vệ</th>
+                    <th className="p-3">Niên khóa</th>
+                    <th className="p-3">Bắt đầu</th>
+                    <th className="p-3">Kết thúc</th>
                     <th className="p-3">Thao tác</th>
                   </tr>
                 </thead>
@@ -102,14 +96,15 @@ export default function HistoryCouncil({ id, MaKhoa }: Props) {
                         key={index}
                         className="border-b hover:bg-purple-50 transition"
                       >
-                        <td className="p-3 font-medium text-gray-700">
-                          {row.MaHD}
-                        </td>
                         <td className="p-3">{row.MaDT}</td>
                         <td className="p-3">{row.TenDT}</td>
-                        <td className="p-3">{row.DiaChiBaoVe}</td>
-                        <td className="p-3">{formatDate(row.NgayBaoVe)}</td>
-                        <td className="p-3">{`Lần ${row.LanBaoVe}`}</td>
+                        <td className="p-3">{row.MaNamHoc}</td>
+                        <td className="p-3">
+                          {formatDate(row.ThoiGianBatDau)}
+                        </td>
+                        <td className="p-3">
+                          {formatDate(row.ThoiGianKetThuc)}
+                        </td>
                         <td className="p-3">
                           <Button
                             className="bg-blue-500 text-white hover:bg-blue-600"

@@ -5,6 +5,7 @@ import { convertSelectBox } from "@/utils/convertSelectBox";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { IFaculty } from "../faculty/FacultyList";
+import LoadingSpinner from "../ui/LoadingSpinner";
 
 interface Props {
   yearOption: Option[];
@@ -56,6 +57,7 @@ export function ReportFaculty({ yearOption }: Props) {
   useEffect(() => {
     loadData();
   }, [JSON.stringify(param)]);
+  if (isLoading) return <LoadingSpinner />;
   return (
     <>
       {/* Report Section */}
@@ -100,11 +102,10 @@ export function ReportFaculty({ yearOption }: Props) {
                 <th className="p-3">Điểm TB</th>
                 <th className="p-3">TL Đâu</th>
                 <th className="p-3">TL Rớt</th>
-                <th className="p-3">TL Thi lại</th>
               </tr>
             </thead>
             <tbody>
-              {!isLoading && data && data.length > 0 ? (
+              {data && data.length > 0 ? (
                 data.map((row, index) => (
                   <tr
                     key={index}
@@ -121,7 +122,6 @@ export function ReportFaculty({ yearOption }: Props) {
                     <td className="p-3">{row.DiemTB}</td>
                     <td className="p-3">{`${row.TiLeDau}%`}</td>
                     <td className="p-3">{`${row.TiLeRot}%`}</td>
-                    <td className="p-3">{`${row.TiLeThiLai}%`}</td>
                   </tr>
                 ))
               ) : (

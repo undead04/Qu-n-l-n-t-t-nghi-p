@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { IStudent, StudentList } from "@/components/student/StudentList";
 import { IPagination } from "@/components/ui/Pagination";
 import { Option } from "@/components/ui/SelectBox";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 export default function Page() {
   const [records, setRecords] = useState<IStudent[]>([]);
@@ -141,26 +142,24 @@ export default function Page() {
     router.push(`?${newParams.toString()}`);
   };
   const handleView = (id: string, MaKhoa: number) => {
-    router.push(`/student/${id}?MaKhoa=${MaKhoa}`);
+    router.push(`/admin/student/${id}?MaKhoa=${MaKhoa}`);
   };
+  if (loading) return <LoadingSpinner />;
   return (
     <>
-      {loading && <p>Loading...</p>}
-      {!loading && (
-        <StudentList
-          isLoadingData={loadingData}
-          params={param}
-          onSelectFaculty={handleSelectDePartment}
-          facultyOptions={facultyOptions}
-          data={records}
-          pagination={pagination}
-          onSearch={handleSearch}
-          sortOptions={dataOptions}
-          onSelectSort={handleSelectName}
-          onPageChange={handlePageChange}
-          handleView={handleView}
-        />
-      )}
+      <StudentList
+        isLoadingData={loadingData}
+        params={param}
+        onSelectFaculty={handleSelectDePartment}
+        facultyOptions={facultyOptions}
+        data={records}
+        pagination={pagination}
+        onSearch={handleSearch}
+        sortOptions={dataOptions}
+        onSelectSort={handleSelectName}
+        onPageChange={handlePageChange}
+        handleView={handleView}
+      />
     </>
   );
 }

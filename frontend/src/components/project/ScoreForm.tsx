@@ -4,15 +4,14 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/Button";
 import axios from "axios";
+import { useUser } from "@/context/UserContext";
 
 export interface IScoreForm {
   MaDoAn: string;
   MaSV: string;
   TenSV: string;
-  DiemGVHuongDan: number;
-  DiemGVPhanBien: number;
-  DiemGVChuTich: number;
-  MaHD: string;
+  Diem: number;
+  MaGV: string;
 }
 interface pageProp {
   MaDoAn: string;
@@ -29,10 +28,8 @@ export const initScore: IScoreForm = {
   MaDoAn: "",
   MaSV: "",
   TenSV: "",
-  DiemGVHuongDan: 0,
-  DiemGVPhanBien: 0,
-  DiemGVChuTich: 0,
-  MaHD: "",
+  MaGV: "",
+  Diem: 0,
 };
 export default function ScoreForm({
   isOpen,
@@ -42,9 +39,14 @@ export default function ScoreForm({
   onLoad,
   MaKhoa,
 }: pageProp) {
+  const { user } = useUser();
   const handleSubmit = async () => {
     try {
-      await axios.put("http://localhost:4000/scores", { ...form, MaKhoa });
+      await axios.put("http://localhost:4000/scores", {
+        ...form,
+        MaKhoa,
+        MaGV: user?.Code,
+      });
       alert("Nhập điểm thành công");
       onClose();
       await onLoad();
@@ -84,54 +86,15 @@ export default function ScoreForm({
                 />
               </div>
               <div>
-                <Label htmlFor="MaHD">Ma HD</Label>
-                <Input
-                  disabled={true}
-                  id="MaHD"
-                  placeholder="VD: HD251001"
-                  value={form.MaHD || ""}
-                />
-              </div>
-            </div>
-
-            {/* Điểm */}
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="advisorScore">Điểm Hương dẫn</Label>
+                <Label htmlFor="DiemGVHuongDan">Điểm</Label>
                 <Input
                   id="DiemGVHuongDan"
-                  name="DiemGVHuongDan"
+                  name="Diem"
                   type="number"
                   min={0}
                   max={10}
                   step={0.25}
-                  value={form.DiemGVHuongDan || ""}
-                  onChange={onChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="reviewerScore">Điểm phản biện</Label>
-                <Input
-                  id="DiemGVPhanBien"
-                  name="DiemGVPhanBien"
-                  type="number"
-                  min={0}
-                  max={10}
-                  step={0.1}
-                  value={form.DiemGVPhanBien || ""}
-                  onChange={onChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="DiemGVChuTich">Điểm chủ tịch</Label>
-                <Input
-                  id="DiemGVChuTich"
-                  name="DiemGVChuTich"
-                  type="number"
-                  min={0}
-                  max={10}
-                  step={0.1}
-                  value={form.DiemGVChuTich || ""}
+                  value={form.Diem}
                   onChange={onChange}
                 />
               </div>
