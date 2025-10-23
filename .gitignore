@@ -13,3 +13,4 @@
 
 # production
 /frontend/build
+backend/.env
