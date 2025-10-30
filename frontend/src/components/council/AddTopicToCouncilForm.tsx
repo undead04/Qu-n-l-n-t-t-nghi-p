@@ -1,14 +1,15 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Select from "react-select";
 import { Label } from "../ui/label";
-import { Input } from "../ui/Input";
 import { Option } from "../ui/SelectBox";
 import axios from "axios";
 import { Button } from "../ui/Button";
-import { ICouncil } from "./CouncilList";
 import { IProject } from "../project/ProjectList";
 import { formatDate } from "@/utils/formatDate";
+import { Input } from "../ui/Input";
+import { IPagination, Pagination } from "../ui/Pagination";
+import { skip } from "node:test";
 
 interface Prop {
   onClose: () => void;
@@ -16,6 +17,8 @@ interface Prop {
   MaHD: string;
   onLoad: () => void;
   MaKhoa: number;
+  addTopic: IProject[];
+  MaNamHoc: string;
 }
 export default function AddCouncilModal({
   onClose,
@@ -23,49 +26,57 @@ export default function AddCouncilModal({
   MaHD,
   onLoad,
   MaKhoa,
+  addTopic,
+  MaNamHoc,
 }: Prop) {
-  const [searchText, setSearchText] = useState("");
-  const [options, setOptions] = useState<Option[]>([]);
-  const [selected, setSelected] = useState<any>(null);
-  const [topic, setTopic] = useState<IProject | null>(null);
+  const [search, setSearch] = useState<string>("");
+  const [topics, setTopics] = useState<IProject[]>(addTopic || []);
   const [loading, setLoading] = useState(false);
-
+  const [searchResults, setSearchResults] = useState<IProject[]>([]);
+  const [pagination, setPagination] = useState<IPagination>();
+  const [filter, setFilter] = useState<{
+    search: string;
+    skip: number;
+  }>({ search: "", skip: 0 });
+  useEffect(() => {
+    setTopics(addTopic);
+  }, [addTopic]);
+  const handlePageChange = (page: number) => {
+    const skip = (page - 1) * 10;
+    setFilter({ ...filter, skip });
+  };
   // Hàm gọi API search SV
-  async function fetchTopic(inputValue: string) {
-    if (inputValue.length < 5) return;
+  async function fetchTopic(inputValue: string, skip: number) {
     setLoading(true);
     try {
       const res = await axios.get("http://localhost:4000/projects", {
-        params: { search: inputValue, MaKhoa },
+        params: {
+          search: inputValue,
+          MaKhoa,
+          year: MaNamHoc,
+          limit: 10,
+          skip: skip,
+        },
       });
       const data = res.data.data;
-      console.log(data);
-      return data.map((sv: any) => ({
-        label: `${sv.TenDT} - ${sv.MaDT}`,
-        value: sv.MaDT,
-      }));
+      setSearchResults(data);
+      setPagination(res.data.pagination);
     } finally {
       setLoading(false);
     }
   }
-
-  // Hàm gọi API lấy chi tiết SV theo MaSV
-  async function fetchTopicDetail(id: string) {
-    const res = await axios.get(`http://localhost:4000/projects/${id}`, {
-      params: { MaKhoa },
-    });
-    const data = await res.data[0];
-    setTopic(data);
-  }
-  const handleAdd = async () => {
+  useEffect(() => {
+    fetchTopic(search, 0);
+  }, [search]);
+  const handleSave = async () => {
     await axios
       .post(`http://localhost:4000/projects/council`, {
-        MaDoAn: selected.value,
+        MaDoAn: topics.map((t) => t.MaDT).join(","),
         MaHoiDong: MaHD,
         MaKhoa: MaKhoa,
       })
       .then((res) => {
-        alert("✅ Thêm đề tài thành công");
+        alert("✅ Cập nhập danh sách đề tài trong hội đồng thành công");
         onLoad();
         onClose();
       })
@@ -73,104 +84,209 @@ export default function AddCouncilModal({
         alert(err.response.data.error);
       });
   };
+  const handleAdd = (topic: IProject) => {
+    if (topic) {
+      // Kiểm tra trùng mã SV
+      const isExist = topics.some((s) => s.MaDT === topic.MaDT);
+      if (isExist) {
+        alert("Đề tài này đã được thêm!");
+        return;
+      }
+      setTopics([...topics, topic as IProject]);
+    }
+  };
+  const handleDelete = (id: string) => {
+    setTopics(topics.filter((i) => i.MaDT != id));
+  };
+  let timer: NodeJS.Timeout;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearch(val);
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      setFilter({ ...filter, search: val });
+    }, 500);
+  };
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white w-full max-w-[650px] rounded-2xl shadow-lg p-6">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800">
-          Thêm đề tài vào hội đồng
-        </h2>
+      <div
+        className="bg-white w-full max-w-[1250px] rounded-2xl shadow-2xl p-6 animate-fadeIn flex flex-col
+                min-h-[70vh] max-h-[95vh] overflow-hidden"
+      >
+        {/* --- Header --- */}
+        <div className="flex justify-between items-center border-b pb-3 mb-4">
+          <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+            🧾 Thêm đề tài vào hội đồng
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition"
+          >
+            ✖
+          </button>
+        </div>
 
-        {/* Select Search */}
-        <div className="mb-4">
-          <Select
-            placeholder="Nhập ít nhất 5 ký tự mã để tìm đề tài..."
-            value={selected}
-            onChange={(opt) => {
-              setSelected(opt);
-              if (opt?.value) {
-                fetchTopicDetail(opt.value);
-              } else {
-                setTopic(null);
-              }
-            }}
-            isClearable
-            isLoading={loading}
-            onInputChange={(val) => {
-              setSearchText(val);
-              if (val.length >= 5) {
-                fetchTopic(val).then((result) => setOptions(result));
-              } else {
-                setOptions([]);
-              }
-            }}
-            options={options}
-            formatOptionLabel={(opt, { context }) =>
-              context === "menu" ? (
-                // 👇 Khi hiển thị trong dropdown
-                <div className="flex justify-between">
-                  <span>{opt.label}</span>
+        {/* --- Content --- */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="grid grid-cols-2 gap-5 flex-1 overflow-hidden">
+            {/* --- Bảng tìm kiếm --- */}
+            <div className="border rounded-xl shadow-sm p-4 flex flex-col overflow-hidden">
+              <h3 className="font-semibold text-gray-800 mb-3">
+                🔍 Tìm đề tài
+              </h3>
+              <Input
+                type="text"
+                className="border rounded-lg px-3 py-2 text-sm mb-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                value={search}
+                onChange={handleChange}
+              />
+              <div className="flex-1 overflow-y-auto border rounded-lg">
+                <table className="w-full border-collapse text-sm">
+                  <thead className="bg-gray-100 text-gray-700 sticky top-0">
+                    <tr>
+                      <th className="p-2 text-center">Mã</th>
+                      <th className="p-2 text-left">Tên đề tài</th>
+                      <th className="p-2 text-left">Bắt đầu</th>
+                      <th className="p-2 text-left">Kết thúc</th>
+                      <th className="p-2 text-left">Tên GV</th>
+                      <th className="p-2 text-left">Trạng thái</th>
+                      <th className="p-2 text-center">Thêm</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {searchResults.length > 0 ? (
+                      searchResults.map((t) => (
+                        <tr
+                          key={t.MaDT}
+                          className="hover:bg-gray-50 border-t transition"
+                        >
+                          <td className="p-2 text-center">{t.MaDT}</td>
+                          <td className="p-2">{t.TenDT}</td>
+                          <td className="p-2">
+                            {formatDate(t.ThoiGianBatDau)}
+                          </td>
+                          <td className="p-2">
+                            {formatDate(t.ThoiGianKetThuc)}
+                          </td>
+                          <td className="p-2">{t.TenGVHuongDan}</td>
+                          <td
+                            className={`p-2 font-semibold ${
+                              t.MaHD == null ? "text-red-600" : "text-green-600"
+                            }`}
+                          >
+                            {t.MaHD == null ? "Ko có" : "Có"}
+                          </td>
+
+                          <td className="p-2 text-center">
+                            <Button
+                              className="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1"
+                              onClick={() => handleAdd(t)}
+                            >
+                              + Thêm
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={3}
+                          className="text-center text-gray-500 italic p-3"
+                        >
+                          {search.length < 5
+                            ? "Nhập ít nhất 5 ký tự để tìm."
+                            : "Không tìm thấy đề tài phù hợp."}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+                <Pagination
+                  currentPage={pagination?.CurrentPage || 1}
+                  totalLength={pagination?.TotalRecords || 0}
+                  pageSize={pagination?.PageSize || 10}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            </div>
+
+            {/* --- Bảng đề tài đã thêm --- */}
+            <div className="border rounded-xl shadow-sm p-4 flex flex-col overflow-hidden">
+              <h3 className="font-semibold text-gray-800 mb-3">
+                📋 Đề tài đã thêm
+              </h3>
+              {topics.length > 0 ? (
+                <div className="flex-1 overflow-y-auto border rounded-lg">
+                  <table className="w-full border-collapse text-sm">
+                    <thead className="bg-gray-100 text-gray-700 sticky top-0">
+                      <tr>
+                        <th className="p-2 text-center">Mã</th>
+                        <th className="p-2 text-left">Tên đề tài</th>
+                        <th className="p-2 text-left">Bắt đầu</th>
+                        <th className="p-2 text-left">Kết thúc</th>
+                        <th className="p-2 text-left">Tên GV</th>
+                        <th className="p-2 text-center">Xóa</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {topics.map((t, index) => (
+                        <tr
+                          key={index}
+                          className="hover:bg-gray-50 border-t transition"
+                        >
+                          <td className="p-2 text-center">{t.MaDT}</td>
+                          <td className="p-2">{t.TenDT}</td>
+                          <td className="p-2">
+                            {formatDate(t.ThoiGianBatDau)}
+                          </td>
+                          <td className="p-2">
+                            {formatDate(t.ThoiGianKetThuc)}
+                          </td>
+                          <td className="p-2">{t.TenGVHuongDan}</td>
+                          <td className="p-2 text-center">
+                            <Button
+                              variant="destructive"
+                              className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1"
+                              onClick={() => handleDelete(t.MaDT)}
+                            >
+                              Xóa
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               ) : (
-                // 👇 Khi hiển thị sau khi chọn
-                <span>{opt.value}</span>
-              )
-            }
-          />
-        </div>
-
-        {/* Thông tin đề tài */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label>Tên đề tài</Label>
-            <Input disabled value={topic?.TenDT || ""} />
-          </div>
-
-          <div>
-            <Label>Khoa</Label>
-            <Input disabled value={topic?.TenKhoa || ""} />
-          </div>
-
-          <div>
-            <Label>Niên khóa</Label>
-            <Input disabled value={topic?.MaNamHoc || ""} />
-          </div>
-
-          <div>
-            <Label>Bắt đầu</Label>
-            <Input
-              disabled
-              value={
-                topic?.ThoiGianBatDau ? formatDate(topic?.ThoiGianBatDau) : ""
-              }
-            />
-          </div>
-          <div>
-            <Label>Kết thúc</Label>
-            <Input
-              disabled
-              value={
-                topic?.ThoiGianKetThuc ? formatDate(topic?.ThoiGianKetThuc) : ""
-              }
-            />
-          </div>
-          <div>
-            <Label>Tên giảng viên</Label>
-            <Input disabled value={topic?.TenGVHuongDan || ""} />
+                <div className="text-gray-500 italic text-center py-5">
+                  Chưa có đề tài nào được thêm.
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Buttons */}
-        <div className="flex justify-end gap-3 pt-4 border-t mt-6">
-          <Button type="button" variant="outline" onClick={onClose}>
-            ❌ Huỷ
+        {/* --- Footer --- */}
+        <div className="flex justify-end gap-3 pt-5 border-t mt-6">
+          <Button
+            type="button"
+            variant="outline"
+            className="px-5 py-2 border-gray-300"
+            onClick={() => {
+              onClose();
+              setTopics(addTopic);
+            }}
+          >
+            Hủy
           </Button>
           <Button
             type="button"
-            className="bg-blue-600 text-white hover:bg-blue-700"
-            onClick={handleAdd}
+            className="bg-blue-600 text-white hover:bg-blue-700 px-5 py-2"
+            onClick={handleSave}
           >
-            💾 Thêm
+            Lưu thay đổi
           </Button>
         </div>
       </div>

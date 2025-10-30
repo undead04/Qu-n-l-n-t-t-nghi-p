@@ -1,44 +1,53 @@
 "use client";
-import { useEffect, useState } from "react";
-import React from "react";
-import { useSearchParams } from "next/navigation";
-import axios from "axios";
-import { IProject } from "@/components/project/ProjectList";
-import LoadingSpinner from "@/components/ui/LoadingSpinner";
-
 import ProjectDetail from "@/components/project/ProjectDetail";
+import React, { useEffect, useState } from "react";
+import { useSearchParams } from "next/dist/client/components/navigation";
 import { ScoreList } from "@/components/project/ScoreList";
 import ProjectSubmission from "@/components/uploadFile";
+import { IProject } from "@/components/project/ProjectList";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import axios from "axios";
+import { User } from "lucide-react";
+import { useUser } from "@/context/UserContext";
 interface PageProps {
   params: Promise<{ id: string }>;
 }
-export default function AssignmentPage({ params }: PageProps) {
-  const [loading, setLoading] = useState(true);
-  const [record, setRecord] = useState<IProject | null>(null);
+export default function Page({ params }: PageProps) {
   const { id } = React.use(params);
   const searchParams = useSearchParams();
   const MaKhoa = Number(searchParams.get("MaKhoa")) || 1;
-  const loadData = async () => {
+  const [project, setProject] = useState<IProject | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const { user } = useUser();
+  const fetchProjects = async () => {
     try {
       const res = await axios.get(`http://localhost:4000/projects/${id}`, {
-        params: { MaKhoa: MaKhoa },
+        params: { MaKhoa, Role: user?.MaKhoa },
       });
-      setRecord(res.data[0]);
+      setProject(res.data[0]);
     } catch (error) {
-      console.error("Fetch History error:", error);
-    } finally {
-      setLoading(false);
+      console.error("Fetch council error:", error);
     }
   };
   useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      await Promise.all([fetchProjects()]);
+      setIsLoading(false);
+    };
+
     loadData();
   }, []);
-  if (record == null && loading) return <LoadingSpinner />;
+  if (isLoading) return <LoadingSpinner />;
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6">
-      <ProjectDetail MaDA={id} MaKhoa={MaKhoa} />;
-      <ScoreList MaDA={id} MaKhoa={MaKhoa} />
-      <ProjectSubmission MaDT={id} MaKhoa={MaKhoa.toString()} disable={false} />
+      <ProjectDetail project={project} />
+      <ScoreList MaDA={id} MaKhoa={MaKhoa} project={project} />
+      <ProjectSubmission
+        MaDT={id}
+        MaKhoa={MaKhoa.toString()}
+        project={project}
+      />
     </div>
   );
 }

@@ -66,7 +66,7 @@ export function ReportFaculty({ yearOption }: Props) {
         <div className="flex justify-between items-center border-b pb-4">
           <div>
             <h3 className="text-xl font-semibold text-purple-700 flex items-center gap-2">
-              📊 Danh sách điểm theo khoa
+              Báo cáo điểm theo khoa
             </h3>
             <p className="text-sm text-gray-500 mt-1">
               Thống kê và báo cáo điểm theo khoa

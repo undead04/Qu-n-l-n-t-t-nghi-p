@@ -9,6 +9,7 @@ import { IInputProject } from "./ProjectForm";
 import { convertSelectBox } from "@/utils/convertSelectBox";
 
 export interface IProject {
+  TrangThaiChamDiem: string;
   MaKhoa: number;
   TenKhoa: string;
   MaDT: string;
@@ -21,9 +22,12 @@ export interface IProject {
   SoSV: number;
   DiemTrungBinh?: number;
   KetQua: string;
-  MaHD:string;
-  DiaChiBaoVe:string;
-  NgayBaoVe:Date
+  MaHD: string;
+  DiaChiBaoVe: string;
+  NgayBaoVe: Date;
+  TenGVChuTich: string;
+  TenGVThuKy: string;
+  TenGVPhanBien: string;
 }
 
 interface ProjectListProps {

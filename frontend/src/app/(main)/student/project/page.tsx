@@ -22,7 +22,7 @@ export default function Page() {
         try {
           const res = await axios.get(
             `http://localhost:4000/students/project/${user.Username}`,
-            { params: { MaKhoa: user.MaKhoa } }
+            { params: { MaKhoa: user.MaKhoa, Role: user.MaKhoa } }
           );
           setRecords(res.data);
         } catch (error) {
@@ -69,7 +69,6 @@ export default function Page() {
                 <th className="p-3">Giáo viên</th>
                 <th className="p-3">Bắt đầu</th>
                 <th className="p-3">Kết thúc</th>
-                <th className="p-3">Số SV</th>
                 <th className="p-3 text-center">Thao tác</th>
               </tr>
             </thead>
@@ -89,7 +88,6 @@ export default function Page() {
                     <td className="p-3">{row.TenGVHuongDan}</td>
                     <td className="p-3">{formatDate(row.ThoiGianBatDau)}</td>
                     <td className="p-3">{formatDate(row.ThoiGianKetThuc)}</td>
-                    <td className="p-3">{row.SoSV}</td>
                     <td className="p-3">
                       <div className="flex gap-2 justify-center">
                         <Button

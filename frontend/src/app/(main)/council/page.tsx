@@ -50,15 +50,19 @@ export default function Page() {
   // 🚀 Fetch API dựa trên URL query
   const loadData = async () => {
     try {
-      const [yearsRes] = await Promise.all([
-        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/years`),
-      ]);
-      setListYear(
-        yearsRes.data.map((item: any) => ({
-          label: item.MaNamHoc,
-          value: item.MaNamHoc,
-        }))
-      );
+      if (user) {
+        const [yearsRes] = await Promise.all([
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/years`, {
+            params: { Role: user.MaKhoa },
+          }),
+        ]);
+        setListYear(
+          yearsRes.data.map((item: any) => ({
+            label: item.MaNamHoc,
+            value: item.MaNamHoc,
+          }))
+        );
+      }
     } catch (error) {
       console.log(error);
     } finally {
@@ -67,7 +71,7 @@ export default function Page() {
   };
   useEffect(() => {
     loadData();
-  }, []);
+  }, [user?.MaKhoa]);
   const fetchData = async () => {
     const skip = parseInt(searchParams.get("skip") || "0");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -85,7 +89,7 @@ export default function Page() {
     });
     setLoadingData(true);
     try {
-      if (user?.MaKhoa != null) {
+      if (user != null) {
         const res = await axios.get("http://localhost:4000/councils", {
           params: {
             search,
@@ -95,6 +99,7 @@ export default function Page() {
             sortOrder,
             MaGV: user.Username,
             MaKhoa: user.MaKhoa,
+            Role: user.MaKhoa,
             year,
           },
         });
@@ -242,6 +247,7 @@ export default function Page() {
                 <th className="p-3">Phản biện</th>
                 <th className="p-3">Khóa</th>
                 <th className="p-3">Số DT</th>
+                <th className="p-3">Trạng thái</th>
                 <th className="p-3 text-center">Thao tác</th>
               </tr>
             </thead>
@@ -262,6 +268,37 @@ export default function Page() {
                     <td className="p-3">{row.TenGVPhanBien}</td>
                     <td className="p-3">{row.MaNamHoc}</td>
                     <td className="p-3">{row.SoDT}</td>
+                    <td className="p-3 text-center font-medium">
+                      {(() => {
+                        const today = new Date();
+                        const ngayBV = new Date(row.NgayBaoVe);
+
+                        if (
+                          ngayBV.getFullYear() === today.getFullYear() &&
+                          ngayBV.getMonth() === today.getMonth() &&
+                          ngayBV.getDate() === today.getDate()
+                        ) {
+                          return (
+                            <span className="text-green-600 bg-green-100 px-2 py-1 rounded inline-block">
+                              Đang diễn ra
+                            </span>
+                          );
+                        } else if (ngayBV > today) {
+                          return (
+                            <span className="text-yellow-700 bg-yellow-100 px-2 py-1 rounded inline-block">
+                              Chưa diễn ra
+                            </span>
+                          );
+                        } else {
+                          return (
+                            <span className="text-red-700 bg-red-100 px-2 py-1 rounded inline-block">
+                              Quá hạn
+                            </span>
+                          );
+                        }
+                      })()}
+                    </td>
+
                     <td className="p-3">
                       <div className="flex gap-2 justify-center">
                         <Button

@@ -44,16 +44,18 @@ export function ReportTeacher({ yearOption, facultyOption }: Props) {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const res = await axios.get("http://localhost:4000/report/teacher", {
-        params: {
-          skip: param.skip,
-          limit: param.limit,
-          year: param.year,
-          deCode: param.deCode,
-        },
-      });
-      setData(res.data.data);
-      setTotalReocrds(res.data.pagination.TotalCount);
+      if (param.deCode) {
+        const res = await axios.get("http://localhost:4000/report/teacher", {
+          params: {
+            skip: param.skip,
+            limit: param.limit,
+            year: param.year,
+            deCode: param.deCode,
+          },
+        });
+        setData(res.data.data);
+        setTotalReocrds(res.data.pagination.TotalCount);
+      }
     } catch (err) {
       alert("⚠️ Lỗi khi lấy dữ liệu báo cáo giáo viên");
     } finally {
@@ -71,7 +73,7 @@ export function ReportTeacher({ yearOption, facultyOption }: Props) {
         <div className="flex justify-between items-center border-b pb-4">
           <div>
             <h3 className="text-xl font-semibold text-purple-700 flex items-center gap-2">
-              📊 Danh sách điểm theo giáo viên
+              Báo cáo điểm theo đề tài hướng dẫn giáo viên
             </h3>
             <p className="text-sm text-gray-500 mt-1">
               Thống kê và báo cáo điểm theo giáo viên
@@ -141,9 +143,15 @@ export function ReportTeacher({ yearOption, facultyOption }: Props) {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="p-6 text-center text-gray-500">
-                    📭 Không có dữ liệu
-                  </td>
+                  {param.deCode ? (
+                    <td colSpan={7} className="p-6 text-center text-gray-500">
+                      📭 Không có dữ liệu
+                    </td>
+                  ) : (
+                    <td colSpan={7} className="p-6 text-center text-gray-500">
+                      📭 Vui lòng chọn khoa
+                    </td>
+                  )}
                 </tr>
               )}
             </tbody>

@@ -7,9 +7,9 @@ import { uploadMemory } from "../middleware/multer.middleware";
 const router = express.Router();
 router.post("/files", uploadMemory.array("files"), async (req, res) => {
   try {
-    const { MaDT, MaKhoa, oldUrl } = req.body;
+    const { MaDT, Role, oldUrl, MaKhoa } = req.body;
     const files = req.files as Express.Multer.File[];
-    if (!files || !MaDT || !MaKhoa) {
+    if (!files.length || !MaDT) {
       return res
         .status(400)
         .json({ error: "Thiếu thông tin hoặc file upload" });
@@ -29,8 +29,7 @@ router.post("/files", uploadMemory.array("files"), async (req, res) => {
     uploadResult.forEach((item, index) => {
       table.rows.add(nameFiles[index], item.key);
     });
-    console.log(nameFiles);
-    const pool = await getConnectionByKhoa(Number(MaKhoa));
+    const pool = await getConnectionByKhoa(MaKhoa);
     await pool
       .request()
       .input("MaDT", sql.VarChar(20), MaDT)
@@ -45,34 +44,43 @@ router.post("/files", uploadMemory.array("files"), async (req, res) => {
 router.get("/files", async (req, res) => {
   try {
     const { MaDT, MaKhoa } = req.query;
+    const Role = req.query.Role ? Number(req.query.Role) : null;
 
     const service = new AWSBucketService();
-
     const pool = await getConnectionByKhoa(Number(MaKhoa));
-    const results = await pool
-      .request()
-      .input("MaDT", sql.VarChar(20), MaDT)
-      .execute("usp_getFile");
-    const datas = results.recordset;
-    if (!datas || datas.length === 0) {
-      res.status(200).json([]); // Không có file
-      return;
+
+    // 🧩 Khởi tạo request
+    const request = pool.request();
+
+    // Luôn có MaDT
+    request.input("MaDT", sql.VarChar(20), MaDT);
+
+    // 🧠 Gọi procedure
+    const results = await request.execute("usp_getFile");
+
+    const datas = results.recordset || [];
+
+    if (datas.length === 0) {
+      return res.status(200).json([]); // Không có file
     }
-    // 🪣 2️⃣ Lấy danh sách key (FileUrl trong DB)
+
+    // 🪣 Map dữ liệu với link S3
     const newData = datas.map((f) => ({
       ...f,
       files: service.getImageByUrl(f.Url),
     }));
+
     res.status(200).json(newData);
   } catch (err) {
     console.error("❌ Lỗi khi usp_getFile:", err);
-    res.status(500).json({ error: err });
+    res.status(500).json({ err });
   }
 });
+
 router.delete("/files", async (req, res) => {
   try {
-    const { MaDT, MaKhoa, urls } = req.query;
-    if (!urls || !MaDT || !MaKhoa) {
+    const { MaDT, urls, MaKhoa } = req.query;
+    if (!urls || !MaDT) {
       res.status(400).json({ error: "Thiếu thông tin hoặc URL" });
       return;
     }

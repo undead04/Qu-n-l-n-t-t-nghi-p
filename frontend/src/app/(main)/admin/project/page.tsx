@@ -193,7 +193,7 @@ export default function Page() {
         <div className="flex justify-between items-center">
           <div>
             <h3 className="text-xl font-semibold text-purple-700 flex items-center gap-2">
-              Danh sách đồ án của giáo viên quản lý
+              Danh sách đồ án
             </h3>
             <p className="text-sm text-gray-500 mt-1">
               Quản lý & theo dõi các đồ án
@@ -211,7 +211,7 @@ export default function Page() {
               onSearch={(query) => handleSearch(query)}
             />
           </div>
-          <div className="md:col-span-2">
+          <div className="md:col-span-3">
             <SelectBox
               options={listFaculty.map((item) => ({
                 label: item.TenKhoa,
@@ -229,7 +229,7 @@ export default function Page() {
               placeholder="Chọn khoa"
             />
           </div>
-          <div className="md:col-span-2">
+          <div className="md:col-span-3">
             <SelectBox
               options={listYear}
               opt={listYear.find((op) => op.value == param.year) || null}

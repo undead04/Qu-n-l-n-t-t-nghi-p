@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { formatDate } from "@/utils/formatDate";
 import axios from "axios";
 import { IStudent } from "./StudentList";
@@ -7,6 +7,7 @@ import { Button } from "../ui/Button";
 import { useRouter } from "next/navigation";
 import { IProject } from "../project/ProjectList";
 import LoadingSpinner from "../ui/LoadingSpinner";
+import { useUser } from "@/context/UserContext";
 
 interface Props {
   id: string;
@@ -29,7 +30,7 @@ export default function HistoryCouncil({ id, MaKhoa }: Props) {
   const fetchHistorys = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:4000/students/history/${id}`,
+        `http://localhost:4000/students/project/${id}`,
         { params: { MaKhoa: MaKhoa } }
       );
       setHistory(res.data);
@@ -76,7 +77,7 @@ export default function HistoryCouncil({ id, MaKhoa }: Props) {
           </div>
 
           <div className="bg-white shadow rounded-lg p-6 border">
-            <h3 className="text-lg font-semibold mb-4">Lịch sữ bảo vệ đồ án</h3>
+            <h3 className="text-lg font-semibold mb-4">Lịch sữ đồ án</h3>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
                 <thead>

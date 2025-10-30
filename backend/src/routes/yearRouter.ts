@@ -5,7 +5,8 @@ import { getConnectionByKhoa } from "../db/dbRouter";
 const router = express.Router();
 router.get("/years", async (req, res) => {
   try {
-    const pool = await getConnectionByKhoa();
+    const Role = req.query.Role ? Number(req.query.Role) : null;
+    const pool = await getConnectionByKhoa(Role);
     const result = await pool
       .request()
       .input("search", sql.NVarChar(250), req.query.search || null)

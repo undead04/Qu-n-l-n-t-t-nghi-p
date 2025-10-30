@@ -7,9 +7,13 @@ router.post("/projects/council", async (req, res) => {
   try {
     const { MaDoAn, MaHoiDong, MaKhoa } = req.body;
     const pool = await getConnectionByKhoa(MaKhoa);
+    const table = new sql.Table("dbo.DoAnList");
+    table.columns.add("MaDoAn", sql.VarChar(20));
+    const doAnArr = (MaDoAn as string).split(",");
+    doAnArr.forEach((a) => table.rows.add(a));
     const result = await pool
       .request()
-      .input("MaDoAn", sql.VarChar(20), MaDoAn)
+      .input("ListDoAn", table)
       .input("MaHoiDong", sql.VarChar(20), MaHoiDong)
       .execute("usp_AddDoAnHoiDong");
 
@@ -22,11 +26,12 @@ router.post("/projects/council", async (req, res) => {
 router.delete("/projects/council", async (req, res) => {
   try {
     const { MaDoAn, MaHoiDong, MaKhoa } = req.body;
-    const pool = await getConnectionByKhoa(MaKhoa);
+    const pool = await getConnectionByKhoa(Number(req.query.Role) || null);
     const result = await pool
       .request()
       .input("MaDoAn", sql.VarChar(20), MaDoAn)
       .input("MaHoiDong", sql.VarChar(20), MaHoiDong)
+      .input("MaKhoa", sql.Int, MaKhoa)
       .execute("usp_RemoveDoAnHoiDong");
 
     res.json({ success: true, data: result.recordset });
@@ -35,64 +40,62 @@ router.delete("/projects/council", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-router.get("/projects/council", async (req, res) => {
+router.get("/projects/council", async (req: Request, res: Response) => {
   try {
-    const { MaDoAn, MaKhoa } = req.query;
-    const pool = await getConnectionByKhoa(Number(MaKhoa));
+    const { MaDoAn } = req.query;
+    const Role = req.query.Role ? Number(req.query.Role) : null;
+    const MaKhoa = req.query.MaKhoa ? Number(req.query.MaKhoa) : null;
 
-    const result = await pool
-      .request()
-      .input("MaDT", sql.VarChar(20), MaDoAn)
-      .execute("usp_getCouncilInProject");
+    const pool = await getConnectionByKhoa(Role);
+    const request = pool.request().input("MaDT", sql.VarChar(20), MaDoAn);
 
+    if (Role === null && MaKhoa !== null) {
+      request.input("MaKhoa", sql.Int, MaKhoa);
+    }
+
+    const result = await request.execute("usp_getCouncilInProject");
     res.json(result.recordset);
   } catch (err: any) {
-    console.error("❌ Lỗi usp_getCouncilInProject:", err);
+    console.error("❌ Lỗi khi gọi usp_getCouncilInProject:", err);
     res.status(500).json({ error: err.message });
   }
 });
-router.get("/projects/students", async (req, res) => {
-  try {
-    const { MaDoAn, MaKhoa } = req.query;
-    const pool = await getConnectionByKhoa(Number(MaKhoa));
 
-    const result = await pool
-      .request()
-      .input("MaDoAn", sql.VarChar(20), MaDoAn)
-      .execute("usp_listStudentInDoAn");
-
-    res.json(result.recordset);
-  } catch (err: any) {
-    console.error("❌ Lỗi usp_getCouncilInProject:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-router.get("/projects", async (req, res) => {
+router.get("/projects", async (req: Request, res: Response) => {
   try {
-    const MaKhoa = Number(req.query.MaKhoa);
-    const pool = await getConnectionByKhoa(MaKhoa);
-    const result = await pool
+    const search = req.query.search as string | undefined;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = parseInt(req.query.skip as string) || 0;
+    const sortBy = (req.query.sortBy as string) || "MaHD";
+    const sortOrder = (req.query.sortOrder as string) || "DESC";
+    const year = req.query.year as string | null;
+    const User = req.query.User as string | null;
+    const GV = req.query.MaGVHuongDan as string | null;
+    const Role = req.query.Role ? Number(req.query.Role) : null;
+    const MaKhoa = req.query.MaKhoa ? Number(req.query.MaKhoa) : null;
+
+    const pool = await getConnectionByKhoa(Role);
+    const request = pool
       .request()
-      .input("search", sql.NVarChar(250), req.query.search || null)
-      .input("limit", sql.Int, parseInt(req.query.limit as string) || 10)
-      .input("skip", sql.Int, parseInt(req.query.skip as string) || 0)
-      .input("MaNamHoc", sql.VarChar(20), req.query.year || null)
-      .input(
-        "SortBy",
-        sql.NVarChar(250),
-        (req.query.sortBy as string) || "DESC"
-      )
-      .input(
-        "SortOrder",
-        sql.NVarChar(250),
-        (req.query.sortOrder as string) || "MaHD"
-      )
-      .input("MaGV", sql.VarChar(20), req.query.MaGVHuongDan || null)
-      .execute("usp_listDoan");
+      .input("search", sql.NVarChar(250), search || null)
+      .input("limit", sql.Int, limit)
+      .input("skip", sql.Int, skip)
+      .input("MaNamHoc", sql.VarChar(20), year || null)
+      .input("User", sql.VarChar(20), User || null)
+      .input("SortBy", sql.NVarChar(250), sortBy)
+      .input("SortOrder", sql.NVarChar(250), sortOrder)
+      .input("MaGV", sql.VarChar(20), GV || null);
+
+    if (Role === null) {
+      request.input("MaKhoa", sql.Int, MaKhoa);
+    }
+
+    const result = await request.execute("usp_listDoan");
     const recordsets = result.recordsets as sql.IRecordSet<any>[];
+
     res.json({
       data: recordsets[0],
-      pagination: recordsets[1][0], // an toàn hơn vì giờ TS biết đây là array
+      pagination: recordsets[1]?.[0] || null,
     });
   } catch (err: any) {
     console.error("❌ Lỗi khi gọi usp_listDoan:", err);
@@ -184,19 +187,25 @@ router.delete("/projects/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-router.get("/projects/:id", async (req, res) => {
+router.get("/projects/:id", async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { MaKhoa } = req.query;
-    const pool = await getConnectionByKhoa(Number(MaKhoa));
-    const result = await pool
-      .request()
-      .input("MaDT", sql.VarChar(20), id)
-      .execute("usp_getDoan");
+    const Role = req.query.Role ? Number(req.query.Role) : null;
+    const MaKhoa = req.query.MaKhoa ? Number(req.query.MaKhoa) : null;
+
+    const pool = await getConnectionByKhoa(Role);
+    const request = pool.request().input("MaDT", sql.VarChar(20), id);
+
+    if (Role === null && MaKhoa !== null) {
+      request.input("MaKhoa", sql.Int, MaKhoa);
+    }
+
+    const result = await request.execute("usp_getDoan");
     res.json(result.recordset);
   } catch (err: any) {
     console.error("❌ Lỗi khi gọi usp_getDoan:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
 export default router;

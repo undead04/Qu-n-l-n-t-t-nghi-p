@@ -14,6 +14,7 @@ import axios from "axios";
 import LoadingSpinner from "./ui/LoadingSpinner";
 import { formatDate } from "@/utils/formatDate";
 import { IProject } from "./project/ProjectList";
+import { useUser } from "@/context/UserContext";
 
 interface UploadedFile {
   files: string;
@@ -26,12 +27,12 @@ interface UploadedFile {
 interface Prop {
   MaDT: string;
   MaKhoa: string;
-  disable: boolean;
+  project: IProject | null;
 }
-export default function ProjectSubmission({ MaDT, MaKhoa, disable }: Prop) {
+export default function ProjectSubmission({ MaDT, MaKhoa, project }: Prop) {
   const [uploadFiles, setUpLoadFiles] = useState<File[]>([]);
   const [files, setFiles] = useState<UploadedFile[]>([]);
-  const [project, setProject] = useState<IProject>();
+  const { user } = useUser();
   const [diffDays, setDiffDays] = useState<number>(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,12 +54,14 @@ export default function ProjectSubmission({ MaDT, MaKhoa, disable }: Prop) {
   };
   const fetchFiles = async () => {
     try {
-      const [filesRes] = await Promise.all([
-        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/files`, {
-          params: { MaDT, MaKhoa },
-        }),
-      ]);
-      setFiles(filesRes.data);
+      if (user) {
+        const [filesRes] = await Promise.all([
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/files`, {
+            params: { MaDT, MaKhoa, Role: user.MaKhoa },
+          }),
+        ]);
+        setFiles(filesRes.data);
+      }
     } catch (error) {
       console.error("Fetch data error:", error);
     } finally {
@@ -68,24 +71,19 @@ export default function ProjectSubmission({ MaDT, MaKhoa, disable }: Prop) {
   const fetchAllData = async () => {
     setIsLoading(true);
     try {
-      const [filesRes, projectsRes] = await Promise.all([
-        axios.get(`${process.env.NEXT_PUBLIC_API_URL}/files`, {
-          params: { MaDT, MaKhoa },
-        }),
-        axios.get(`http://localhost:4000/projects/${MaDT}`, {
-          params: { MaKhoa },
-        }),
-      ]);
-
-      const datas = filesRes.data;
-      setFiles(datas);
-
-      // 🔹 Lấy thông tin đồ án
-      const projectData = projectsRes.data[0];
-      setProject(projectData);
+      if (user) {
+        const [filesRes] = await Promise.all([
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/files`, {
+            params: { MaDT, MaKhoa, Role: user.MaKhoa },
+          }),
+        ]);
+        setFiles(filesRes.data);
+      }
 
       // So sánh chỉ theo ngày
-      const end = normalizeDate(new Date(projectData.ThoiGianKetThuc));
+      const end = normalizeDate(
+        new Date(project?.ThoiGianKetThuc || new Date())
+      );
       const now = normalizeDate(new Date());
 
       const diffMs = end.getTime() - now.getTime();
@@ -108,8 +106,13 @@ export default function ProjectSubmission({ MaDT, MaKhoa, disable }: Prop) {
   };
   const handleSave = async () => {
     try {
-      if (!MaDT || !MaKhoa) return alert("Thiếu thông tin MaDT hoặc MaKhoa!");
+      if (!MaDT || !MaKhoa || !user)
+        return alert("Thiếu thông tin MaDT hoặc MaKhoa!");
       if (uploadFiles.length === 0) return alert("Chưa chọn file nào!");
+      if (diffDays < 0) {
+        alert("Đã quá hạn không thể nộp file");
+        return;
+      }
       const formData = new FormData();
       formData.append("MaDT", MaDT);
       formData.append("MaKhoa", MaKhoa);
@@ -226,7 +229,7 @@ export default function ProjectSubmission({ MaDT, MaKhoa, disable }: Prop) {
             </table>
           </div>
 
-          {isOpen && !disable && (
+          {isOpen && user?.Role == "SinhVien" && (
             <div
               onClick={() => document.getElementById("fileUpload")?.click()}
               onDragOver={(e) => {
@@ -282,7 +285,7 @@ export default function ProjectSubmission({ MaDT, MaKhoa, disable }: Prop) {
           )}
 
           {/* --- Nút hành động --- */}
-          {!disable && (
+          {user?.Role == "SinhVien" && (
             <div className="flex flex-wrap justify-end gap-3 pt-4 border-t">
               <Button
                 onClick={() => setIsOpen(!isOpen)}

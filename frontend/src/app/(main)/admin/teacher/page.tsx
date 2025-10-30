@@ -6,9 +6,11 @@ import { IPagination } from "@/components/ui/Pagination";
 import { ITeacher, TeacherList } from "@/components/teacher/TeacherList";
 import { Option } from "@/components/ui/SelectBox";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { useUser } from "@/context/UserContext";
 
 export default function Page() {
   const [records, setRecords] = useState<ITeacher[]>([]);
+  const {user} = useUser()
   const [facultyOptions, setFacultyOptions] = useState<Option[]>([]);
   const [pagination, setPagination] = useState<IPagination>({
     TotalRecords: 0,

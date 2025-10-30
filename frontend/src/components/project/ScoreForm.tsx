@@ -1,16 +1,17 @@
 "use client";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/Input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/Button";
 import axios from "axios";
 import { useUser } from "@/context/UserContext";
 
 export interface IScoreForm {
   MaDoAn: string;
-  MaSV: string;
-  TenSV: string;
-  Diem: number;
+  scores: {
+    MaSV: string;
+    TenSV: string;
+    Diem: number;
+  }[];
   MaGV: string;
 }
 interface pageProp {
@@ -18,18 +19,20 @@ interface pageProp {
   isOpen: boolean;
   onClose: () => void;
   form: IScoreForm;
-  onChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => void;
+  onChange: (MaSV: string, value: string) => void;
   onLoad: () => Promise<void>;
   MaKhoa: number;
 }
 export const initScore: IScoreForm = {
   MaDoAn: "",
-  MaSV: "",
-  TenSV: "",
+  scores: [
+    {
+      MaSV: "",
+      TenSV: "",
+      Diem: 0,
+    },
+  ],
   MaGV: "",
-  Diem: 0,
 };
 export default function ScoreForm({
   isOpen,
@@ -45,7 +48,6 @@ export default function ScoreForm({
       await axios.put("http://localhost:4000/scores", {
         ...form,
         MaKhoa,
-        MaGV: user?.Code,
       });
       alert("Nhập điểm thành công");
       onClose();
@@ -54,64 +56,63 @@ export default function ScoreForm({
       alert(err.response?.data?.error || "Có lỗi xảy ra");
     }
   };
-
+  
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <Card className="w-full max-w-xl animate-fadeIn scale-95">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-2xl animate-fadeIn ">
         <CardHeader>
           <CardTitle>📝 Nhập điểm sinh viên</CardTitle>
         </CardHeader>
 
         <CardContent>
           <div className="space-y-6 max-h-[70vh] overflow-y-auto">
-            {/* Mã & tên SV */}
-            <div className="grid grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="MaSV">Mã SV</Label>
-                <Input
-                  disabled={true}
-                  id="MaSV"
-                  placeholder="VD: SV001"
-                  value={form.MaSV || ""}
-                />
-              </div>
-              <div>
-                <Label htmlFor="TenSV">Tên SV</Label>
-                <Input
-                  disabled={true}
-                  id="TenSV"
-                  placeholder="VD: Nguyễn Văn A"
-                  value={form.TenSV || ""}
-                />
-              </div>
-              <div>
-                <Label htmlFor="DiemGVHuongDan">Điểm</Label>
-                <Input
-                  id="DiemGVHuongDan"
-                  name="Diem"
-                  type="number"
-                  min={0}
-                  max={10}
-                  step={0.25}
-                  value={form.Diem}
-                  onChange={onChange}
-                />
-              </div>
-            </div>
+            {/* Bảng danh sách sinh viên */}
+            <table className="min-w-full border border-gray-300 rounded-lg">
+              <thead className="bg-gray-100 sticky top-0">
+                <tr>
+                  <th className="px-4 py-2 text-left w-[25%]">Mã SV</th>
+                  <th className="px-4 py-2 text-left w-[45%]">Tên sinh viên</th>
+                  <th className="px-4 py-2 text-left w-[30%]">Điểm</th>
+                </tr>
+              </thead>
+              <tbody>
+                {form.scores.map((sv, index) => (
+                  <tr
+                    key={index}
+                    className="border-t hover:bg-gray-50 transition"
+                  >
+                    <td className="px-4 py-2">{sv.MaSV}</td>
+                    <td className="px-4 py-2">{sv.TenSV}</td>
+                    <td className="px-4 py-2">
+                      <Input
+                        type="number"
+                        min={0}
+                        max={10}
+                        step={0.25}
+                        value={sv.Diem ?? 0}
+                        onChange={(e) =>
+                          onChange(sv.MaSV, e.currentTarget.value)
+                        }
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
           {/* Footer */}
           <div className="flex justify-end gap-3 pt-4 border-t mt-4">
             <Button type="button" variant="outline" onClick={onClose}>
-              ❌ Huỷ
+              Huỷ
             </Button>
             <Button
               type="button"
               className="bg-blue-600 text-white hover:bg-blue-700"
               onClick={handleSubmit}
             >
-              💾 Lưu điểm
+              Lưu điểm
             </Button>
           </div>
         </CardContent>

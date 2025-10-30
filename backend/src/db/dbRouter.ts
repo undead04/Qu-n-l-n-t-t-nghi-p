@@ -54,7 +54,7 @@ export async function preloadAllKhoaConnections() {
     console.error("❌ Error preloading khoa connections:", err);
   }
 }
-export async function getConnectionByKhoa(MaKhoa?: number) {
+export async function getConnectionByKhoa(MaKhoa: number | null) {
   if (MaKhoa == null) return mainPool;
 
   const pool = connectionPools[MaKhoa];

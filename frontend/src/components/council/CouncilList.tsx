@@ -84,7 +84,6 @@ export function CouncilList({
       return null;
     }
   };
-  if (isLoading) return <LoadingSpinner />;
   return (
     <>
       <div className="px-6 py-6 bg-gradient-to-tr from-purple-50 to-white rounded-2xl shadow-lg border space-y-6">
@@ -163,11 +162,12 @@ export function CouncilList({
                 <th className="p-3">Phản biện</th>
                 <th className="p-3">Khóa</th>
                 <th className="p-3">Số DT</th>
+                <th className="p-3">Trạng thái</th>
                 <th className="p-3 text-center">Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {data && data.length > 0 ? (
+              {!isLoading && data && data.length > 0 ? (
                 data.map((row, index) => (
                   <tr
                     key={index}
@@ -183,6 +183,37 @@ export function CouncilList({
                     <td className="p-3">{row.TenGVPhanBien}</td>
                     <td className="p-3">{row.MaNamHoc}</td>
                     <td className="p-3">{row.SoDT}</td>
+                    <td className="p-3 text-center font-medium">
+                      {(() => {
+                        const today = new Date();
+                        const ngayBV = new Date(row.NgayBaoVe);
+
+                        if (
+                          ngayBV.getFullYear() === today.getFullYear() &&
+                          ngayBV.getMonth() === today.getMonth() &&
+                          ngayBV.getDate() === today.getDate()
+                        ) {
+                          return (
+                            <span className="text-green-600 bg-green-100 px-2 py-1 rounded inline-block">
+                              Đang diễn ra
+                            </span>
+                          );
+                        } else if (ngayBV > today) {
+                          return (
+                            <span className="text-yellow-700 bg-yellow-100 px-2 py-1 rounded inline-block">
+                              Chưa diễn ra
+                            </span>
+                          );
+                        } else {
+                          return (
+                            <span className="text-red-700 bg-red-100 px-2 py-1 rounded inline-block">
+                              Quá hạn
+                            </span>
+                          );
+                        }
+                      })()}
+                    </td>
+
                     <td className="p-3">
                       <div className="flex gap-2 justify-center">
                         <Button

@@ -1,37 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
 import { formatDate } from "@/utils/formatDate";
-import axios from "axios";
 import { IProject } from "./ProjectList";
-import LoadingSpinner from "../ui/LoadingSpinner";
 
 interface Props {
-  MaDA: string;
-  MaKhoa: number;
+  project: IProject | null;
 }
-export default function ProjectDetail({ MaDA, MaKhoa }: Props) {
-  const [project, setProject] = useState<IProject>();
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const fetchProjects = async () => {
-    try {
-      const res = await axios.get(`http://localhost:4000/projects/${MaDA}`, {
-        params: { MaKhoa },
-      });
-      setProject(res.data[0]);
-    } catch (error) {
-      console.error("Fetch council error:", error);
-    }
-  };
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      await Promise.all([fetchProjects()]);
-      setIsLoading(false);
-    };
-
-    loadData();
-  }, []);
-  if (isLoading) return <LoadingSpinner />;
+export default function ProjectDetail({ project }: Props) {
   return (
     <>
       {project && (
@@ -51,7 +25,7 @@ export default function ProjectDetail({ MaDA, MaKhoa }: Props) {
                 <span className="font-medium">Khoa:</span> {project.TenKhoa}
               </div>
               <div>
-                <span className="font-medium">Tên GV:</span>{" "}
+                <span className="font-medium">Giáo viên hướng dẫn:</span>{" "}
                 {project.TenGVHuongDan}
               </div>
               <div>
@@ -75,6 +49,18 @@ export default function ProjectDetail({ MaDA, MaKhoa }: Props) {
                   <div>
                     <span className="font-medium">Ngày bào vệ:</span>{" "}
                     {formatDate(project.NgayBaoVe)}
+                  </div>
+                  <div>
+                    <span className="font-medium">Giáo viên phản biện:</span>{" "}
+                    {project.TenGVPhanBien}
+                  </div>
+                  <div>
+                    <span className="font-medium">Chủ tịch:</span>{" "}
+                    {project.TenGVChuTich}
+                  </div>
+                  <div>
+                    <span className="font-medium">Thư ký:</span>{" "}
+                    {project.TenGVThuKy}
                   </div>
                 </>
               ) : (

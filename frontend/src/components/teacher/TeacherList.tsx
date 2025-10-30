@@ -144,16 +144,6 @@ export function TeacherList({
                   <td className="p-3">{row.SoDienThoai}</td>
                   <td className="p-3">{row.HocVi}</td>
                   <td className="p-3">{row.ChuyenNganh}</td>
-                  <td className="p-3">
-                    {/* <div className="flex gap-2 justify-center">
-                      <Button
-                        className="bg-blue-500 text-white hover:bg-blue-600"
-                        onClick={() => handleView(row.MaGV, row.MaKhoa)}
-                      >
-                        👁 Xem
-                      </Button>
-                    </div> */}
-                  </td>
                 </tr>
               ))
             ) : (

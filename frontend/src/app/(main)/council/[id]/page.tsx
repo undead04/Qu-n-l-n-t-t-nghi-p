@@ -11,7 +11,7 @@ export default function Page({ params }: PageProps) {
   const MaKhoa = Number(searchParams.get("MaKhoa")) || 1;
   return (
     <>
-      <CouncilDetail MaHD={id} MaKhoa={MaKhoa} />
+      <CouncilDetail MaHD={id} MaKhoa={MaKhoa} disable={true} />
     </>
   );
 }

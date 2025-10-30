@@ -14,6 +14,7 @@ import { useUser } from "@/context/UserContext";
 import { ITeacher } from "@/components/teacher/TeacherList";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { IFaculty } from "@/components/faculty/FacultyList";
+import { Span } from "next/dist/trace";
 
 export default function Page() {
   const { user } = useUser();
@@ -69,11 +70,15 @@ export default function Page() {
     try {
       if (user) {
         const [yearsRes, teachersRes, facultyRes] = await Promise.all([
-          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/years`),
-          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teachers`, {
-            params: { limit: 100, MaKhoa: user?.MaKhoa },
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/years`, {
+            params: { Role: user.MaKhoa },
           }),
-          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/faculties`),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/teachers`, {
+            params: { limit: 100, MaKhoa: user.MaKhoa, Role: user.MaKhoa },
+          }),
+          axios.get(`${process.env.NEXT_PUBLIC_API_URL}/faculties`, {
+            params: { Role: user.MaKhoa },
+          }),
         ]);
         setListYear(
           yearsRes.data.map((item: any) => ({
@@ -123,6 +128,8 @@ export default function Page() {
             sortOrder,
             MaKhoa: user.MaKhoa,
             MaGVHuongDan: user.Username,
+            User: user.Username,
+            Role: user.MaKhoa,
             year,
           },
         });
@@ -377,6 +384,7 @@ export default function Page() {
                 <th className="p-3">Bắt đầu</th>
                 <th className="p-3">Kết thúc</th>
                 <th className="p-3">Số SV</th>
+                <th className="p-3">Trạng thái</th>
                 <th className="p-3 text-center">Thao tác</th>
               </tr>
             </thead>
@@ -397,27 +405,46 @@ export default function Page() {
                     <td className="p-3">{formatDate(row.ThoiGianBatDau)}</td>
                     <td className="p-3">{formatDate(row.ThoiGianKetThuc)}</td>
                     <td className="p-3">{row.SoSV}</td>
+                    <td className="p-3 text-center font-medium whitespace-nowrap">
+                      {(() => {
+                        if (row.TrangThaiChamDiem == "Đã chấm") {
+                          return (
+                            <span className="text-green-600 bg-green-100 px-2 py-1 rounded">
+                              {row.TrangThaiChamDiem}
+                            </span>
+                          );
+                        } else {
+                          return (
+                            <span className="text-red-700 bg-red-100 px-2 py-1 rounded">
+                              {row.TrangThaiChamDiem}
+                            </span>
+                          );
+                        }
+                      })()}
+                    </td>
+
                     <td className="p-3">
-                      <div className="flex gap-2 justify-center">
-                        <Button
-                          disabled={row.MaGVHuongDan != user?.Username}
-                          className="bg-yellow-300 hover:bg-yellow-400"
-                          onClick={() =>
-                            handleOpen({
-                              MaDT: row.MaDT,
-                              TenDT: row.TenDT,
-                              MaNamHoc: row.MaNamHoc,
-                              MaKhoa: row.MaKhoa,
-                              MaGVHuongDan: row.MaGVHuongDan,
-                              ThoiGianBatDau:
-                                row.ThoiGianBatDau.toString().split("T")[0],
-                              ThoiGianKetThuc:
-                                row.ThoiGianKetThuc.toString().split("T")[0],
-                            } as IInputProject)
-                          }
-                        >
-                          ✏️ Edit
-                        </Button>
+                      <div className="flex gap-2 justify-end">
+                        {row.MaGVHuongDan == user?.Username && (
+                          <Button
+                            className="bg-yellow-300 hover:bg-yellow-400"
+                            onClick={() =>
+                              handleOpen({
+                                MaDT: row.MaDT,
+                                TenDT: row.TenDT,
+                                MaNamHoc: row.MaNamHoc,
+                                MaKhoa: row.MaKhoa,
+                                MaGVHuongDan: row.MaGVHuongDan,
+                                ThoiGianBatDau:
+                                  row.ThoiGianBatDau.toString().split("T")[0],
+                                ThoiGianKetThuc:
+                                  row.ThoiGianKetThuc.toString().split("T")[0],
+                              } as IInputProject)
+                            }
+                          >
+                            ✏️ Edit
+                          </Button>
+                        )}
                         <Button
                           className="bg-blue-500 text-white hover:bg-blue-600"
                           onClick={() => handleNavigate(row.MaDT!, row.MaKhoa!)}
