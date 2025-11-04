@@ -102,31 +102,26 @@ export default function AdminPage() {
 # 📘 Mô tả chuyển đổi CSDL quan hệ sang CSDL phân tán (Phân mảnh ngang)
 
 ## 🎯 1. Mục tiêu
-Hệ thống ban đầu sử dụng cơ sở dữ liệu tập trung, lưu toàn bộ dữ liệu cho tất cả các khoa trong một server duy nhất.  
-Việc này khiến truy vấn chậm và khó mở rộng khi số lượng sinh viên, giáo viên tăng cao.  
-Vì vậy, hệ thống được chuyển sang **mô hình cơ sở dữ liệu phân tán theo kiểu phân mảnh ngang**, giúp:
-- Giảm tải truy cập lên server trung tâm  
-- Tối ưu truy vấn cục bộ tại từng khoa  
-- Dễ dàng mở rộng quy mô khi thêm khoa mới  
+Hệ thống ban đầu sử dụng cơ sở dữ liệu tập trung, lưu toàn bộ dữ liệu cho mọi khoa trong cùng một máy chủ.  
+Để tăng hiệu năng và khả năng mở rộng, hệ thống được chuyển sang mô hình **CSDL phân tán theo kiểu phân mảnh ngang**, trong đó:
+- Mỗi khoa có một CSDL riêng (site cục bộ).  
+- CSDL trung tâm lưu thông tin dùng chung như **KHOA** và **NAMHOC**.
 
 ---
 
 ## 🗺️ 2. Mô hình logic ban đầu
-CSDL tập trung bao gồm các bảng chính:
-- **SINHVIEN**, **GIAOVIEN**, **DETAI**, **DETAI_SINHVIEN**, **DIEM**, **HOIDONG**, **TAILIEU**, **NAMHOC**, **KHOA**
-
-Tất cả các bảng đều có thuộc tính **MaKhoa**, dùng để xác định khoa mà bản ghi thuộc về.
+Hệ thống gồm các bảng chính:
+- **SINHVIEN**, **GIAOVIEN**, **DETAI**, **DETAI_SINHVIEN**, **DIEM**, **HOIDONG**, **TAILIEU**
+- Các bảng dùng chung: **KHOA**, **NAMHOC**
 
 ---
 
 ## ⚙️ 3. Thiết kế phân tán (Phân mảnh ngang)
 
 ### 3.1. Nguyên tắc phân mảnh
-- Mỗi **khoa** sẽ có một **site CSDL riêng**, lưu trữ toàn bộ dữ liệu của khoa đó.  
-- Dữ liệu được chia **theo điều kiện MaKhoa**, đảm bảo **các mảnh không giao nhau và đầy đủ dữ liệu**.  
-- Ví dụ:
-  - `DBTN_CNTT`: chứa dữ liệu của **Khoa Công Nghệ Thông Tin (MaKhoa = 1)**  
-  - `DBTN_CK`: chứa dữ liệu của **Khoa Cơ Khí (MaKhoa = 2)**
+- Dữ liệu được chia **theo MaKhoa** (mỗi khoa tương ứng một site).  
+- Mỗi site chỉ chứa dữ liệu liên quan đến khoa của mình.  
+- Các bảng dùng chung (`KHOA`, `NAMHOC`) được lưu tập trung tại **DBMain** và có thể được truy cập qua Linked Server.
 
 ---
 
@@ -134,18 +129,38 @@ Tất cả các bảng đều có thuộc tính **MaKhoa**, dùng để xác đ�
 
 | Tên bảng | Kiểu phân mảnh | Điều kiện phân mảnh | Vị trí lưu trữ |
 |-----------|----------------|----------------------|----------------|
-| SINHVIEN | Ngang | MaKhoa = 1 / 2 / ... | Site tương ứng với khoa |
-| GIAOVIEN | Ngang | MaKhoa = 1 / 2 / ... | Site tương ứng với khoa |
-| DETAI | Ngang | MaKhoa = 1 / 2 / ... | Site tương ứng |
-| DETAI_SINHVIEN | Ngang | Theo MaKhoa của DETAI | Site tương ứng |
-| DIEM | Ngang | Theo MaKhoa của DETAI_SINHVIEN | Site tương ứng |
-| HOIDONG | Ngang | Theo MaKhoa | Site tương ứng |
-| TAILIEU | Ngang | Theo MaDT thuộc site | Site tương ứng |
-| KHOA | Sao chép | Toàn bộ | Tất cả các site |
-| NAMHOC | Sao chép | Toàn bộ | Tất cả các site |
+| SINHVIEN | Ngang | MaKhoa = 1 / 2 / ... | Server theo khoa |
+| GIAOVIEN | Ngang | MaKhoa = 1 / 2 / ... | Server theo khoa |
+| DETAI | Ngang | MaKhoa = 1 / 2 / ... | Server theo khoa |
+| DETAI_SINHVIEN | Ngang | Theo MaKhoa của DETAI | Server theo khoa |
+| DIEM | Ngang | Theo MaKhoa của DETAI_SINHVIEN | Server theo khoa |
+| HOIDONG | Ngang | Theo MaKhoa | Server theo khoa |
+| TAILIEU | Ngang | Theo MaDT thuộc site | Server theo khoa |
+| KHOA | Tập trung | Toàn bộ | DBMain |
+| NAMHOC | Tập trung | Toàn bộ | DBMain |
 
 ---
 
-## 🔗 4. Mô hình vật lý phân tán
+## 🧩 4. Mô hình vật lý phân tán
+
+
+---
+
+## 🔗 5. Truy vấn hợp nhất & liên kết site
+
+### Tạo Linked Server (kết nối các site)
+```sql
+EXEC sp_addlinkedserver 
+  @server = 'DBTN_CNTT', 
+  @srvproduct = '', 
+  @provider = 'SQLNCLI', 
+  @datasrc = 'ServerCNTT';
+
+EXEC sp_addlinkedserver 
+  @server = 'DBTN_CK', 
+  @srvproduct = '', 
+  @provider = 'SQLNCLI', 
+  @datasrc = 'ServerCK';
+
 
 
