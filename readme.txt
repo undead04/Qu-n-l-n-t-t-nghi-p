@@ -41,19 +41,61 @@ Kiểm tra file `src/db`:
 **Chúc bạn thành công!**
 
 ## 9. Phân quyền Frontend
-### UserContext
+# 🧠 UserContext – Quản lý phân quyền Frontend (Next.js / React)
 
-File `frontend/src/contexts/UserContext.tsx` quản lý trạng thái đăng nhập và thông tin người dùng:
+## 🎯 Mục đích
+Dùng để quản lý thông tin người dùng và phân quyền hiển thị giao diện ở **frontend**.
+---
 
-- Cung cấp context để lưu trữ:
-  - Thông tin user đang đăng nhập
-  - Token xác thực
-  - Role người dùng (ADMIN/TEACHER/STUDENT)
-- Các method chính:
-  - `login()`: Xử lý đăng nhập và lưu thông tin user
-  - `logout()`: Đăng xuất và xóa thông tin user
-  - `isAuthenticated()`: Kiểm tra trạng thái đăng nhập
+## ⚙️ Cài đặt & Cấu trúc
+File: `context/UserContext.tsx`
 
-Ví dụ sử dụng:
+Chức năng chính:
+- `user`: Lưu thông tin người dùng hiện tại.
+- `setUser()`: Cập nhật user sau khi đăng nhập.
+- `logout()`: Xóa thông tin người dùng và chuyển về `/login`.
+- `hasRole(role)`: Kiểm tra người dùng có quyền hay không.
+
+---
+
+## 🧩 Sử dụng
+
+### 1️⃣ Bọc ứng dụng
 ```tsx
-const { user, login, logout } = useUserContext();
+<UserProvider>
+  <App />
+</UserProvider>
+
+# 🔒 ProtectedRoute – Bảo vệ route theo quyền (Frontend Only)
+
+## 🎯 Mục đích  
+Giúp **chặn truy cập** vào các trang không phù hợp với vai trò người dùng (role), chỉ xử lý ở **frontend**.
+
+---
+
+## ⚙️ Cấu trúc  
+File: `components/ProtectedRoute.tsx`
+
+### Chức năng chính:
+- Kiểm tra `localStorage.user`
+- Nếu **chưa đăng nhập** → chuyển hướng `/login`
+- Nếu **role không hợp lệ** → `router.back()` (quay lại trang trước)
+- Nếu hợp lệ → render nội dung (`children`)
+
+---
+
+## 🧩 Sử dụng
+
+### 1️⃣ Import & Bao quanh component cần bảo vệ
+```tsx
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { ROLES } from "@/context/UserContext";
+
+export default function AdminPage() {
+  return (
+    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+      <h1>Trang dành cho Admin</h1>
+    </ProtectedRoute>
+  );
+}
+
