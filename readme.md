@@ -98,4 +98,54 @@ export default function AdminPage() {
     </ProtectedRoute>
   );
 }
+```
+# 📘 Mô tả chuyển đổi CSDL quan hệ sang CSDL phân tán (Phân mảnh ngang)
+
+## 🎯 1. Mục tiêu
+Hệ thống ban đầu sử dụng cơ sở dữ liệu tập trung, lưu toàn bộ dữ liệu cho tất cả các khoa trong một server duy nhất.  
+Việc này khiến truy vấn chậm và khó mở rộng khi số lượng sinh viên, giáo viên tăng cao.  
+Vì vậy, hệ thống được chuyển sang **mô hình cơ sở dữ liệu phân tán theo kiểu phân mảnh ngang**, giúp:
+- Giảm tải truy cập lên server trung tâm  
+- Tối ưu truy vấn cục bộ tại từng khoa  
+- Dễ dàng mở rộng quy mô khi thêm khoa mới  
+
+---
+
+## 🗺️ 2. Mô hình logic ban đầu
+CSDL tập trung bao gồm các bảng chính:
+- **SINHVIEN**, **GIAOVIEN**, **DETAI**, **DETAI_SINHVIEN**, **DIEM**, **HOIDONG**, **TAILIEU**, **NAMHOC**, **KHOA**
+
+Tất cả các bảng đều có thuộc tính **MaKhoa**, dùng để xác định khoa mà bản ghi thuộc về.
+
+---
+
+## ⚙️ 3. Thiết kế phân tán (Phân mảnh ngang)
+
+### 3.1. Nguyên tắc phân mảnh
+- Mỗi **khoa** sẽ có một **site CSDL riêng**, lưu trữ toàn bộ dữ liệu của khoa đó.  
+- Dữ liệu được chia **theo điều kiện MaKhoa**, đảm bảo **các mảnh không giao nhau và đầy đủ dữ liệu**.  
+- Ví dụ:
+  - `DBTN_CNTT`: chứa dữ liệu của **Khoa Công Nghệ Thông Tin (MaKhoa = 1)**  
+  - `DBTN_CK`: chứa dữ liệu của **Khoa Cơ Khí (MaKhoa = 2)**
+
+---
+
+### 3.2. Bảng phân mảnh cụ thể
+
+| Tên bảng | Kiểu phân mảnh | Điều kiện phân mảnh | Vị trí lưu trữ |
+|-----------|----------------|----------------------|----------------|
+| SINHVIEN | Ngang | MaKhoa = 1 / 2 / ... | Site tương ứng với khoa |
+| GIAOVIEN | Ngang | MaKhoa = 1 / 2 / ... | Site tương ứng với khoa |
+| DETAI | Ngang | MaKhoa = 1 / 2 / ... | Site tương ứng |
+| DETAI_SINHVIEN | Ngang | Theo MaKhoa của DETAI | Site tương ứng |
+| DIEM | Ngang | Theo MaKhoa của DETAI_SINHVIEN | Site tương ứng |
+| HOIDONG | Ngang | Theo MaKhoa | Site tương ứng |
+| TAILIEU | Ngang | Theo MaDT thuộc site | Site tương ứng |
+| KHOA | Sao chép | Toàn bộ | Tất cả các site |
+| NAMHOC | Sao chép | Toàn bộ | Tất cả các site |
+
+---
+
+## 🔗 4. Mô hình vật lý phân tán
+
 
