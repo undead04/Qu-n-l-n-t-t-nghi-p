@@ -65,7 +65,7 @@ Chức năng chính:
 <UserProvider>
   <App />
 </UserProvider>
-
+```
 # 🔒 ProtectedRoute – Bảo vệ route theo quyền (Frontend Only)
 
 ## 🎯 Mục đích  
