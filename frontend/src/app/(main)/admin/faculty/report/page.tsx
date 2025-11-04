@@ -1,6 +1,8 @@
 "use client";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { ReportFaculty } from "@/components/reports/reportFaculty";
 import { Option } from "@/components/ui/SelectBox";
+import { ROLES } from "@/context/UserContext";
 import axios from "axios";
 import React, { useEffect } from "react";
 
@@ -26,10 +28,10 @@ export default function Page() {
     loadData();
   }, []);
   return (
-    <>
+    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
       <div className="space-y-6">
         <ReportFaculty yearOption={listYear} />
       </div>
-    </>
+    </ProtectedRoute>
   );
 }

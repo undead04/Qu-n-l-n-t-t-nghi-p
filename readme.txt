@@ -39,3 +39,21 @@ Kiểm tra file `src/db`:
 ## 8 frontend
 -- tương tự như backend cd frontend npm install npm run dev để chạy
 **Chúc bạn thành công!**
+
+## 9. Phân quyền Frontend
+### UserContext
+
+File `frontend/src/contexts/UserContext.tsx` quản lý trạng thái đăng nhập và thông tin người dùng:
+
+- Cung cấp context để lưu trữ:
+  - Thông tin user đang đăng nhập
+  - Token xác thực
+  - Role người dùng (ADMIN/TEACHER/STUDENT)
+- Các method chính:
+  - `login()`: Xử lý đăng nhập và lưu thông tin user
+  - `logout()`: Đăng xuất và xóa thông tin user
+  - `isAuthenticated()`: Kiểm tra trạng thái đăng nhập
+
+Ví dụ sử dụng:
+```tsx
+const { user, login, logout } = useUserContext();

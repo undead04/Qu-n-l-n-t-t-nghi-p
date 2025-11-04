@@ -6,11 +6,11 @@ import { IPagination } from "@/components/ui/Pagination";
 import { ITeacher, TeacherList } from "@/components/teacher/TeacherList";
 import { Option } from "@/components/ui/SelectBox";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import { useUser } from "@/context/UserContext";
+import { ROLES, useUser } from "@/context/UserContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function Page() {
   const [records, setRecords] = useState<ITeacher[]>([]);
-  const {user} = useUser()
   const [facultyOptions, setFacultyOptions] = useState<Option[]>([]);
   const [pagination, setPagination] = useState<IPagination>({
     TotalRecords: 0,
@@ -147,7 +147,7 @@ export default function Page() {
   };
   if (loading) return <LoadingSpinner />;
   return (
-    <>
+    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
       <TeacherList
         isLoadingData={loadingData}
         params={param}
@@ -161,6 +161,6 @@ export default function Page() {
         onPageChange={handlePageChange}
         handleView={handleView}
       />
-    </>
+    </ProtectedRoute>
   );
 }

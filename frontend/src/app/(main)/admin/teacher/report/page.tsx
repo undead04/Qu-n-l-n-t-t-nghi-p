@@ -1,7 +1,9 @@
 "use client";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import { ReportTeacher } from "@/components/reports/reportTeacher";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { Option } from "@/components/ui/SelectBox";
+import { ROLES } from "@/context/UserContext";
 import axios from "axios";
 import React, { useEffect } from "react";
 
@@ -37,7 +39,7 @@ export default function Page() {
     loadData();
   }, []);
   return (
-    <>
+    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
       <div className="space-y-6">
         {!isLoading ? (
           <ReportTeacher yearOption={listYear} facultyOption={facultyOptions} />
@@ -45,6 +47,6 @@ export default function Page() {
           <LoadingSpinner />
         )}
       </div>
-    </>
+    </ProtectedRoute>
   );
 }

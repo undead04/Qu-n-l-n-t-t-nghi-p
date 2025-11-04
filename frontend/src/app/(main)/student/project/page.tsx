@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { IProject } from "@/components/project/ProjectList";
 import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/utils/formatDate";
-import { useUser } from "@/context/UserContext";
+import { ROLES, useUser } from "@/context/UserContext";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function Page() {
   const { user } = useUser();
@@ -45,7 +46,7 @@ export default function Page() {
 
   if (!user && loading) return <LoadingSpinner />;
   return (
-    <>
+    <ProtectedRoute allowedRoles={[ROLES.SINH_VIEN]}>
       <div className="px-6 py-6 bg-gradient-to-tr from-purple-50 to-white rounded-2xl shadow-lg border space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -111,6 +112,6 @@ export default function Page() {
           </table>
         </div>
       </div>
-    </>
+    </ProtectedRoute>
   );
 }

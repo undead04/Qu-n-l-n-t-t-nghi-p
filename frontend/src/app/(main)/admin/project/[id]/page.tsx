@@ -7,6 +7,8 @@ import ProjectSubmission from "@/components/uploadFile";
 import { IProject } from "@/components/project/ProjectList";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import axios from "axios";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { ROLES } from "@/context/UserContext";
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -37,14 +39,16 @@ export default function Page({ params }: PageProps) {
   }, []);
   if (isLoading) return <LoadingSpinner />;
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-6">
-      <ProjectDetail project={project} />;
-      <ScoreList MaDA={id} MaKhoa={MaKhoa} project={project} />
-      <ProjectSubmission
-        MaDT={id}
-        MaKhoa={MaKhoa.toString()}
-        project={project}
-      />
-    </div>
+    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+      <div className="w-full max-w-5xl mx-auto space-y-6">
+        <ProjectDetail project={project} />;
+        <ScoreList MaDA={id} MaKhoa={MaKhoa} project={project} />
+        <ProjectSubmission
+          MaDT={id}
+          MaKhoa={MaKhoa.toString()}
+          project={project}
+        />
+      </div>
+    </ProtectedRoute>
   );
 }

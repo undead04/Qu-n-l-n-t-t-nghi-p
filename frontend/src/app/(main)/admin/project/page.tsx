@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/utils/formatDate";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { IFaculty } from "@/components/faculty/FacultyList";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { ROLES } from "@/context/UserContext";
 
 export default function Page() {
   const [records, setRecords] = useState<IProject[]>([]);
@@ -187,7 +189,7 @@ export default function Page() {
 
   if (loading) return <LoadingSpinner />;
   return (
-    <>
+    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
       <div className="px-6 py-6 bg-gradient-to-tr from-purple-50 to-white rounded-2xl shadow-lg border space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -314,6 +316,6 @@ export default function Page() {
           />
         </div>
       </div>
-    </>
+    </ProtectedRoute>
   );
 }

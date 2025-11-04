@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { IPagination } from "@/components/ui/Pagination";
 import { FacultyList, IFaculty } from "@/components/faculty/FacultyList";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { ROLES } from "@/context/UserContext";
 
 export default function Page() {
   const [records, setRecords] = useState<IFaculty[]>([]);
@@ -75,7 +77,7 @@ export default function Page() {
   };
 
   return (
-    <>
+    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
       {!loading ? (
         <FacultyList
           isLoadingData={loadingData}
@@ -87,6 +89,6 @@ export default function Page() {
       ) : (
         <LoadingSpinner />
       )}
-    </>
+    </ProtectedRoute>
   );
 }

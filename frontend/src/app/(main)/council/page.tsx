@@ -6,11 +6,12 @@ import { IPagination, Pagination } from "@/components/ui/Pagination";
 import { ICouncil } from "@/components/council/CouncilList";
 import { IInputCouncil, initCouncil } from "@/components/council/CouncilForm";
 import SelectBox, { Option } from "@/components/ui/SelectBox";
-import { useUser } from "@/context/UserContext";
+import { ROLES, useUser } from "@/context/UserContext";
 import SearchBox from "@/components/ui/SearchBox";
 import { formatDate } from "@/utils/formatDate";
 import { Button } from "@/components/ui/Button";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import ProtectedRoute from "@/components/ProtectedRoute";
 export default function Page() {
   const [records, setRecords] = useState<ICouncil[]>([]);
   const { user } = useUser();
@@ -188,7 +189,7 @@ export default function Page() {
   };
   if (!user && loading) return <LoadingSpinner />;
   return (
-    <>
+    <ProtectedRoute allowedRoles={[ROLES.GIAO_VIEN]}>
       <div className="px-6 py-6 bg-gradient-to-tr from-purple-50 to-white rounded-2xl shadow-lg border space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -333,6 +334,6 @@ export default function Page() {
           />
         </div>
       </div>
-    </>
+    </ProtectedRoute>
   );
 }

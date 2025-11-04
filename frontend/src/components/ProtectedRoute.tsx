@@ -25,7 +25,7 @@ export default function ProtectedRoute({
 
     // Nếu không có quyền → redirect
     if (!allowedRoles.includes(parsed.Role)) {
-      router.push("/unauthorized");
+      router.back();
       return;
     }
 

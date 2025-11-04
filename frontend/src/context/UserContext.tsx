@@ -8,17 +8,23 @@ interface User {
   MaKhoa: number;
   Code: string;
 }
-
+export const ROLES = {
+  ADMIN: "Admin",
+  GIAO_VIEN: "GiaoVien",
+  SINH_VIEN: "SinhVien",
+};
 interface UserContextType {
   user: User | null;
   setUser: (user: User | null) => void;
   logout: () => void;
+  hasRole: (role: string) => void;
 }
 
 const UserContext = createContext<UserContextType>({
   user: null,
   setUser: () => {},
   logout: () => {},
+  hasRole: () => {},
 });
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
@@ -40,9 +46,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
     window.location.href = "/login";
   };
-
+  const hasRole = (roles: string) => {
+    if (!user) return false;
+    if (Array.isArray(roles)) return roles.includes(user.Role);
+    return user.Role === roles;
+  };
   return (
-    <UserContext.Provider value={{ user, setUser, logout }}>
+    <UserContext.Provider value={{ user, setUser, logout, hasRole }}>
       {children}
     </UserContext.Provider>
   );

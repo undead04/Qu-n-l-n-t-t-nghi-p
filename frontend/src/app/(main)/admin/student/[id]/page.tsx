@@ -1,5 +1,7 @@
 "use client";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import HistoryCouncil from "@/components/student/HistoryCouncil";
+import { ROLES } from "@/context/UserContext";
 import { useSearchParams } from "next/dist/client/components/navigation";
 import React from "react";
 interface PageProps {
@@ -9,5 +11,9 @@ export default function Page({ params }: PageProps) {
   const searchParams = useSearchParams();
   const { id } = React.use(params);
   const MaKhoa = Number(searchParams.get("MaKhoa")) || 1;
-  return <HistoryCouncil id={id} MaKhoa={MaKhoa} />;
+  return (
+    <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+      <HistoryCouncil id={id} MaKhoa={MaKhoa} />
+    </ProtectedRoute>
+  );
 }

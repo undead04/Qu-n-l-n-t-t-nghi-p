@@ -10,11 +10,12 @@ import ProjectForm, { IInputProject } from "@/components/project/ProjectForm";
 import SearchBox from "@/components/ui/SearchBox";
 import { Button } from "@/components/ui/Button";
 import { formatDate } from "@/utils/formatDate";
-import { useUser } from "@/context/UserContext";
+import { ROLES, useUser } from "@/context/UserContext";
 import { ITeacher } from "@/components/teacher/TeacherList";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { IFaculty } from "@/components/faculty/FacultyList";
 import { Span } from "next/dist/trace";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function Page() {
   const { user } = useUser();
@@ -304,7 +305,7 @@ export default function Page() {
 
   if (!user && loading) return <LoadingSpinner />;
   return (
-    <>
+    <ProtectedRoute allowedRoles={[ROLES.GIAO_VIEN]}>
       <ProjectForm
         onSetInput={setInput}
         listFaculty={listFaculty}
@@ -487,6 +488,6 @@ export default function Page() {
           />
         </div>
       </div>
-    </>
+    </ProtectedRoute>
   );
 }

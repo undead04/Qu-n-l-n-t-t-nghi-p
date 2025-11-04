@@ -8,7 +8,8 @@ import { IProject } from "@/components/project/ProjectList";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import axios from "axios";
 import { User } from "lucide-react";
-import { useUser } from "@/context/UserContext";
+import { ROLES, useUser } from "@/context/UserContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -40,14 +41,16 @@ export default function Page({ params }: PageProps) {
   }, []);
   if (isLoading) return <LoadingSpinner />;
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-6">
-      <ProjectDetail project={project} />
-      <ScoreList MaDA={id} MaKhoa={MaKhoa} project={project} />
-      <ProjectSubmission
-        MaDT={id}
-        MaKhoa={MaKhoa.toString()}
-        project={project}
-      />
-    </div>
+    <ProtectedRoute allowedRoles={[ROLES.SINH_VIEN]}>
+      <div className="w-full max-w-5xl mx-auto space-y-6">
+        <ProjectDetail project={project} />
+        <ScoreList MaDA={id} MaKhoa={MaKhoa} project={project} />
+        <ProjectSubmission
+          MaDT={id}
+          MaKhoa={MaKhoa.toString()}
+          project={project}
+        />
+      </div>
+    </ProtectedRoute>
   );
 }

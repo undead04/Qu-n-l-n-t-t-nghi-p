@@ -12,6 +12,8 @@ import {
 import { Option } from "@/components/ui/SelectBox";
 import DeleteModal from "@/components/ui/DeleteModal";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { ROLES } from "@/context/UserContext";
 export default function Page() {
   const [records, setRecords] = useState<ICouncil[]>([]);
   const [pagination, setPagination] = useState<IPagination>({
@@ -249,41 +251,43 @@ export default function Page() {
   if (loading) return <LoadingSpinner />;
   return (
     <>
-      <AddCouncilForm
-        listYear={listYear}
-        onSetInput={setInput}
-        onSubmit={handleSubmit}
-        input={input}
-        handleClose={handleClose}
-        onChange={handleChange}
-        onChangeSelect={handleChangeSelect}
-        facultyOptions={facultyOptions}
-        isOpen={isOpen}
-      />
-      <DeleteModal
-        onClose={handleCloseDelete}
-        onConfirm={handleConfirm}
-        open={isOpenDel}
-        title="Xóa hội đồng"
-        description={`Bạn có muốn xóa hội đồng này không ${input.MaHD}`}
-      />
+      <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+        <AddCouncilForm
+          listYear={listYear}
+          onSetInput={setInput}
+          onSubmit={handleSubmit}
+          input={input}
+          handleClose={handleClose}
+          onChange={handleChange}
+          onChangeSelect={handleChangeSelect}
+          facultyOptions={facultyOptions}
+          isOpen={isOpen}
+        />
+        <DeleteModal
+          onClose={handleCloseDelete}
+          onConfirm={handleConfirm}
+          open={isOpenDel}
+          title="Xóa hội đồng"
+          description={`Bạn có muốn xóa hội đồng này không ${input.MaHD}`}
+        />
 
-      <CouncilList
-        disable={true}
-        listYear={listYear}
-        sortOptions={sortOptions}
-        onSelectSort={handleSelectSort}
-        handleOpen={handleOpen}
-        params={param}
-        onSelectFaculty={handleSelect}
-        facultyOptions={facultyOptions}
-        data={records}
-        isLoading={loadingData}
-        pagination={pagination}
-        onSearch={handleSearch}
-        onPageChange={handlePageChange}
-        handleOpenDelete={handleOpenDelete}
-      />
+        <CouncilList
+          disable={true}
+          listYear={listYear}
+          sortOptions={sortOptions}
+          onSelectSort={handleSelectSort}
+          handleOpen={handleOpen}
+          params={param}
+          onSelectFaculty={handleSelect}
+          facultyOptions={facultyOptions}
+          data={records}
+          isLoading={loadingData}
+          pagination={pagination}
+          onSearch={handleSearch}
+          onPageChange={handlePageChange}
+          handleOpenDelete={handleOpenDelete}
+        />
+      </ProtectedRoute>
     </>
   );
 }
