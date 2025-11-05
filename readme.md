@@ -151,16 +151,67 @@ Hệ thống gồm các bảng chính:
 ### Tạo Linked Server (kết nối các site)
 ```sql
 EXEC sp_addlinkedserver 
-  @server = 'DBTN_CNTT', 
-  @srvproduct = '', 
-  @provider = 'SQLNCLI', 
-  @datasrc = 'ServerCNTT';
+    @server     = N'DBTN_CNTT',
+    @srvproduct = N'',               
+    @provider   = N'SQLNCLI',      
+    @datasrc    = N'VANAN\SQLEXPRESS',
+    @catalog    = N'DBTN_CNTT' ;
+GO
 
-EXEC sp_addlinkedserver 
-  @server = 'DBTN_CK', 
-  @srvproduct = '', 
-  @provider = 'SQLNCLI', 
-  @datasrc = 'ServerCK';
+EXEC sp_addlinkedsrvlogin 
+    @rmtsrvname = N'DBTN_CNTT', 
+    @useself    = N'False',              
+    @locallogin = NULL, 
+    @rmtuser    = N'sa', 
+    @rmtpassword= N'123456';
+GO
+
+CREATE OR ALTER PROC usp_listHoiDong
+    @search NVARCHAR(250) = NULL,
+    @limit INT = 10,
+    @MaKhoa INT = NULL,
+    @skip INT = 0,
+    @MaGV VARCHAR(20) = NULL,
+    @MaNamHoc NVARCHAR(20) = NULL,
+    @SortBy NVARCHAR(50) = 'NgayBaoVe',
+    @SortOrder NVARCHAR(4) = 'ASC'
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @LinkedServer NVARCHAR(100),
+            @SQL NVARCHAR(MAX);
+
+    -- 🔹 1. Chọn linked server tương ứng
+    SET @LinkedServer = CASE @MaKhoa
+        WHEN 1 THEN 'DBTN_CNTT'
+        WHEN 2 THEN 'DBTN_CK'
+        ELSE NULL
+    END;
+
+    IF @LinkedServer IS NULL
+    BEGIN
+        RETURN;
+    END;
+    -- 🔹 2. Gọi proc qua linked server
+    SET @SQL = N'
+        EXEC [' + @LinkedServer + N'].[DBTN_' + 
+            CASE @MaKhoa WHEN 1 THEN 'CNTT' WHEN 2 THEN 'CK' WHEN 3 THEN 'KT' ELSE 'CNTT' END + 
+        N'].[dbo].[usp_listHoiDong]
+            @search = @search,
+            @limit = @limit,
+            @skip = @skip,
+            @MaGV = @MaGV,
+            @MaNamHoc = @MaNamHoc,
+            @SortBy = @SortBy,
+            @SortOrder = @SortOrder;';
+
+    EXEC sp_executesql @SQL, 
+        N'@search NVARCHAR(250), @limit INT, @skip INT, @MaGV VARCHAR(20), @MaNamHoc NVARCHAR(20), @SortBy NVARCHAR(50), @SortOrder NVARCHAR(4)',
+        @search, @limit, @skip, @MaGV, @MaNamHoc, @SortBy, @SortOrder;
+END;
+GO
+
 
 
 
