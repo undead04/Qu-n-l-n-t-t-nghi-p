@@ -1,23 +1,11 @@
-﻿IF NOT EXISTS (
-    SELECT name 
-    FROM sys.databases 
-    WHERE name = N'DBTN'
-)
-BEGIN
-    CREATE DATABASE DBTN;
-END
-GO
-
-USE DBTN
-GO
--- ===============================
--- 1. Bảng KHOA
+﻿-- ===============================
+-- 1. Bảng Khoa
 -- ===============================
 IF OBJECT_ID('KHOA','U') IS NULL
 BEGIN
     CREATE TABLE KHOA (
         MaKhoa INT IDENTITY(1,1) PRIMARY KEY,
-        TenKhoa NVARCHAR(250) NOT NULL,
+        TenKhoa NVARCHAR(250),
         CreatedAt DATETIME DEFAULT GETDATE(),
         UpdatedAt DATETIME DEFAULT GETDATE()
     );
@@ -25,7 +13,21 @@ END
 GO
 
 -- ===============================
--- 2. Bảng SINH VIÊN
+-- 2. Bảng NĂM HỌC
+-- ===============================
+IF OBJECT_ID('NAMHOC','U') IS NULL
+BEGIN
+    CREATE TABLE NAMHOC (
+        MaNamHoc VARCHAR(20) PRIMARY KEY,  
+        ThoiGianBatDau  DATE NOT NULL,        
+        ThoiGianKetThuc   DATE NOT NULL,      
+        CHECK (ThoiGianKetThuc > ThoiGianBatDau)
+    );
+END
+GO
+
+-- ===============================
+-- 3. Bảng SINH VIÊN
 -- ===============================
 IF OBJECT_ID('SINHVIEN','U') IS NULL
 BEGIN
@@ -43,7 +45,7 @@ END
 GO
 
 -- ===============================
--- 3. Bảng GIÁO VIÊN
+-- 4. Bảng GIÁO VIÊN
 -- ===============================
 IF OBJECT_ID('GIAOVIEN','U') IS NULL
 BEGIN
@@ -61,22 +63,8 @@ BEGIN
     );
 END
 GO
-
 -- ===============================
--- 5. Bảng NĂM HỌC
--- ===============================
-IF OBJECT_ID('NAMHOC','U') IS NULL
-BEGIN
-    CREATE TABLE NAMHOC (
-        MaNamHoc VARCHAR(20) PRIMARY KEY,  -- ví dụ: '2024-2025'
-        ThoiGianBatDau  DATE NOT NULL,        -- 2024
-        ThoiGianKetThuc   DATE NOT NULL,       -- 2025
-        CHECK (ThoiGianKetThuc > ThoiGianBatDau)
-    );
-END
-GO
--- ===============================
--- 4. Bảng HỘI ĐỒNG
+-- 5. Bảng HỘI ĐỒNG
 -- ===============================
 IF OBJECT_ID('HOIDONG','U') IS NULL
 BEGIN
@@ -93,14 +81,14 @@ BEGIN
         UpdatedAt DATETIME DEFAULT GETDATE(),
         FOREIGN KEY (MaKhoa) REFERENCES KHOA(MaKhoa),
         FOREIGN KEY (MaGVChuTich) REFERENCES GIAOVIEN(MaGV),
-        FOREIGN KEY (MaNamHoc) REFERENCES NAMHOC(MaNamHoc),
         FOREIGN KEY (MaGVThuKy)   REFERENCES GIAOVIEN(MaGV),
-        FOREIGN KEY (MaGVPhanBien) REFERENCES GIAOVIEN(MaGV)
+        FOREIGN KEY (MaGVPhanBien) REFERENCES GIAOVIEN(MaGV),
+        FOREIGN KEY (MaNamHoc) REFERENCES NAMHOC(MaNamHoc)
     );
 END
-
+GO
 -- ===============================
--- 7. Bảng ĐỒ ÁN (instance của đề tài mỗi năm, có điểm)
+-- 6. Bảng ĐỒ ÁN
 -- ===============================
 IF OBJECT_ID('DETAI','U') IS NULL
 BEGIN
@@ -112,29 +100,32 @@ BEGIN
         MaGVHuongDan VARCHAR(20) NOT NULL,
         ThoiGianBatDau DATE NOT NULL,
         ThoiGianKetThuc DATE NOT NULL,
+        MaHD VARCHAR(20) NULL,
         CreatedAt DATETIME DEFAULT GETDATE(),
         UpdatedAt DATETIME DEFAULT GETDATE(),
-        FOREIGN KEY (MaNamHoc) REFERENCES NAMHOC(MaNamHoc),
-        FOREIGN KEY (MaGVHuongDan) REFERENCES GIAOVIEN(MaGV)
+        FOREIGN KEY (MaKhoa) REFERENCES KHOA(MaKhoa),
+        FOREIGN KEY (MaGVHuongDan) REFERENCES GIAOVIEN(MaGV),
+        FOREIGN KEY (MaHD) REFERENCES HOIDONG(MaHD),
+        FOREIGN KEY (MaNamHoc) REFERENCES NAMHOC(MaNamHoc)
     );
 END
 GO
 -- ===============================
--- 8. Bảng HỘI ĐỒNG VỚI ĐỀ TÀI
+-- 7. Bảng TÀI LIỆU
 -- ===============================
-IF OBJECT_ID('HOIDONG_DETAI') IS NULl
+IF OBJECT_ID('TAILIEU','U') IS NULL
 BEGIN
-    CREATE TABLE HOIDONG_DETAI (
-        MaDT VARCHAR(20),
-        MaHD VARCHAR(20),
-        PRIMARY KEY (MaDT,MaHD),
-        LanBaoVe INT NOT NULL CHECK (LanBaoVe BETWEEN 1 AND 2),
-        FOREIGN KEY (MaHD) REFERENCES HOIDONG(MAHD),
+    CREATE TABLE TAILIEU (
+        MaTL INT IDENTITY(1,1) PRIMARY KEY,
+        MaDT VARCHAR(20) NOT NULL,
+        TenTL NVARCHAR(250),
+        Url NVARCHAR(250),
+        CreatedAt DATETIME DEFAULT GETDATE(),
+        UpdatedAt DATETIME DEFAULT GETDATE(),
         FOREIGN KEY (MaDT) REFERENCES DETAI(MaDT)
     );
 END
 GO
-
 -- ===============================
 -- 8. Bảng PHÂN CÔNG SINH VIÊN VÀO ĐỒ ÁN
 -- ===============================
@@ -144,6 +135,8 @@ BEGIN
         MaDT VARCHAR(20),
         MaSV VARCHAR(20),
         PRIMARY KEY(MaDT, MaSV),
+        DiemTrungBinh FLOAT NULL CHECK (DiemTrungBinh BETWEEN 0 AND 10),
+        KetQua NVARCHAR(20) NULL,   -- Đậu / Rớt
         FOREIGN KEY (MaDT) REFERENCES DETAI(MaDT),
         FOREIGN KEY (MaSV) REFERENCES SINHVIEN(MaSV)
     );
@@ -151,34 +144,54 @@ END
 GO
 
 -- ===============================
--- 8. Bảng KETQUA_BAOVE
+-- 9. Bảng ĐIỂM
 -- ===============================
-CREATE TABLE KETQUA_BAOVE (
-    MaDT VARCHAR(20) NOT NULL,
-    MaSV VARCHAR(20) NOT NULL,
-    MaHD VARCHAR(20) NOT NULL,
-    DiemGVHuongDan FLOAT NULL,
-    DiemGVPhanBien FLOAT NULL,
-    DiemGVChuTich FLOAT NULL,
-    DiemTrungBinh FLOAT NULL CHECK (DiemTrungBinh BETWEEN 0 AND 10),
-    KetQua NVARCHAR(20) NULL,   -- Đậu / Rớt
+IF OBJECT_ID('DIEM','U') IS NULL
+BEGIN
+    CREATE TABLE DIEM (
+        MaDT VARCHAR(20) NOT NULL,
+        MaSV VARCHAR(20) NOT NULL,
+        MaGV VARCHAR(20) NOT NULL,
+        Diem FLOAT NOT NULL CHECK (Diem BETWEEN 0 AND 10),
+        PRIMARY KEY (MaDT, MaSV, MaGV),
+        FOREIGN KEY (MaDT, MaSV) REFERENCES DETAI_SINHVIEN(MaDT, MaSV),
+        FOREIGN KEY (MaGV) REFERENCES GIAOVIEN(MaGV)
+    );
+END
+GO
 
-    PRIMARY KEY (MaDT, MaSV, MaHD),
-    FOREIGN KEY (MaDT, MaSV) REFERENCES DETAI_SINHVIEN(MaDT, MaSV),
-    FOREIGN KEY (MaDT,MaHD) REFERENCES HOIDONG_DETAI(MaDT,MaHD)
-);
 
 -- ===============================
--- TẠO BẢNG COUNTER
+-- 10. TẠO BẢNG COUNTER
 -- ===============================
 IF OBJECT_ID('Dem','U') IS NULL 
 BEGIN
     CREATE TABLE Dem (
-        Nam CHAR(2),         -- Năm (2 số cuối)
-        KhoaCode INT,
-        Loai CHAR(2),        -- SV / GV / DT
+        Id INT IDENTITY(1,1) PRIMARY KEY,
+        Nam CHAR(2),         -- Năm (2 số cuối)       -- SV / GV / DT
         STT INT NOT NULL,
-        PRIMARY KEY(Nam, KhoaCode, Loai)
+        Loai CHAR(2)
+    );
+END
+GO
+
+-- ===============================
+-- 11. Bảng Users
+-- ===============================
+IF OBJECT_ID('USERS','U') IS NULL
+BEGIN
+    CREATE TABLE USERS (
+        UserID INT IDENTITY PRIMARY KEY,
+        Username NVARCHAR(100) UNIQUE,
+        PasswordHash NVARCHAR(255),
+        Role NVARCHAR(20) CHECK (Role IN ('Admin', 'GiaoVien', 'SinhVien')),
+        MaKhoa INT NULL,
+        Salt VARCHAR(36),
+        MaGV VARCHAR(20) NULL,
+        MaSV VARCHAR(20) NULL,
+        FOREIGN KEY (MaKhoa) REFERENCES KHOA(MaKhoa),
+        FOREIGN KEY (MaGV) REFERENCES GIAOVIEN(MaGV),
+        FOREIGN KEY (MaSV) REFERENCES SINHVIEN(MaSV)
     );
 END
 GO
