@@ -108,8 +108,14 @@ Hệ thống ban đầu sử dụng cơ sở dữ liệu tập trung, lưu toàn
 - CSDL trung tâm lưu thông tin dùng chung như **KHOA** và **NAMHOC**.
 
 ---
-
-## 🗺️ 2. Mô hình logic ban đầu
+## 2. Giải thích
+Tất cả code của phần DB đều cở trong config
+DBTT: database tập trung
+DBPT:database phân tán
+trong DBPT cái nào có chữ M có nghĩa là db chung còn có chử K có nghĩa là DB Khoa
+Trong mỗi folder đã chia làm 4 cái là func,proc,trigger,table nhớ đọc nha mấy pro
+---
+## 🗺️ 3. Mô hình logic ban đầu
 Hệ thống gồm các bảng chính:
 - **SINHVIEN**, **GIAOVIEN**, **DETAI**, **DETAI_SINHVIEN**, **DIEM**, **HOIDONG**, **TAILIEU**
 - Các bảng dùng chung: **KHOA**, **NAMHOC**
