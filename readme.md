@@ -108,13 +108,6 @@ Hệ thống ban đầu sử dụng cơ sở dữ liệu tập trung, lưu toàn
 - CSDL trung tâm lưu thông tin dùng chung như **KHOA** và **NAMHOC**.
 
 ---
-## 2. Giải thích
-Tất cả code của phần DB đều cở trong config
-DBTT: database tập trung
-DBPT:database phân tán
-trong DBPT cái nào có chữ M có nghĩa là db chung còn có chử K có nghĩa là DB Khoa
-Trong mỗi folder đã chia làm 4 cái là func,proc,trigger,table nhớ đọc nha mấy pro
----
 ## 🗺️ 3. Mô hình logic ban đầu
 Hệ thống gồm các bảng chính:
 - **SINHVIEN**, **GIAOVIEN**, **DETAI**, **DETAI_SINHVIEN**, **DIEM**, **HOIDONG**, **TAILIEU**
@@ -217,6 +210,68 @@ BEGIN
         @search, @limit, @skip, @MaGV, @MaNamHoc, @SortBy, @SortOrder;
 END;
 GO
+```
+# ⚡ So sánh hiệu suất truy vấn: Cơ sở dữ liệu Tập trung vs Phân tán
+
+## 📘 Tổng quan
+
+Thí nghiệm này nhằm **so sánh hiệu suất truy vấn** giữa hai mô hình:
+- **Hệ thống cơ sở dữ liệu tập trung (Centralized Database System)**  
+- **Hệ thống cơ sở dữ liệu phân tán (Distributed Database System)**
+
+Dữ liệu được **phân mảnh ngang theo Khoa**, và mục tiêu là đánh giá sự khác biệt giữa hai loại truy vấn:
+- **Truy vấn toàn cục (Global Query)**
+- **Truy vấn cục bộ (Local Query)**
+
+---
+
+## 🧪 Phương pháp thực nghiệm
+
+### 1️⃣ Môi trường thử nghiệm
+- **Hệ quản trị:** Microsoft SQL Server  
+- **Lược đồ:** Quản lý đồ án – gồm các bảng `SINHVIEN`, `DETAI`, `DIEM`, `HOIDONG`, ...  
+- **Phân mảnh:** Dữ liệu được chia theo từng Khoa (phân mảnh ngang).  
+- **Bảng ghi nhận hiệu suất:** `Report_QueryPerformance(QueryType, SystemType, QueryName, ExecutionTimeMs)`
+
+### 2️⃣ Cách đo thời gian thực thi
+
+Mỗi loại truy vấn được chạy **200 lần** cho cả hai hệ thống (Centralized và Distributed):
+
+## 📊 Kết quả trực quan
+
+Biểu đồ dưới đây thể hiện **so sánh hiệu suất truy vấn trung bình** giữa hai hệ thống:
+- **Centralized Database** (màu tím)
+- **Distributed Database** (màu xanh lá)
+
+<img width="2560" height="1440" alt="image" src="https://github.com/user-attachments/assets/74bdbcf5-bc9f-4f78-9148-8968120ee23b" />
+
+
+---
+
+## 📈 Thời gian trung bình (ms)
+
+| Loại truy vấn | Centralized | Distributed | Nhận xét |
+|----------------|-------------|--------------|-----------|
+| **Global** | 45.92 | 63.73 | Hệ phân tán chậm hơn do cần tổng hợp dữ liệu từ nhiều site. |
+| **Local**  | 84.58 | 80.83 | Hệ phân tán nhanh hơn nhẹ vì dữ liệu được xử lý tại site cục bộ. |
+
+---
+
+## 💬 Phân tích
+
+- **Truy vấn Global:**  
+  Trong hệ tập trung, toàn bộ dữ liệu được lưu tại một vị trí duy nhất nên quá trình truy vấn không tốn chi phí truyền dữ liệu → **tốc độ nhanh hơn**.  
+  Trong hệ phân tán, truy vấn toàn cục phải **truy cập và gộp dữ liệu từ nhiều site**, dẫn đến **tăng độ trễ mạng** và **chi phí đồng bộ**.
+
+- **Truy vấn Local:**  
+  Khi dữ liệu được phân mảnh theo từng Khoa, mỗi site chỉ chứa phần dữ liệu riêng → **truy vấn cục bộ nhanh hơn**, do giảm kích thước dữ liệu cần xử lý và không cần truyền dữ liệu qua mạng.
+
+- **Tổng quan:**  
+  Hiệu suất giữa hai mô hình thể hiện đúng đặc trưng của hệ phân tán:
+  - Truy vấn cục bộ (local) có lợi thế nhờ tính **data locality**.  
+  - Truy vấn toàn cục (global) chịu ảnh hưởng bởi **network overhead**.  
+
+---
 
 
 
