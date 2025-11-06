@@ -23,7 +23,6 @@ interface IData {
   MaxTimeMs: number;
 }
 
-// Transform dữ liệu từ “long form” sang “wide form” cho BarChart
 const transformData = (rawData: IData[]) => {
   const map: Record<string, any> = {};
 
@@ -77,16 +76,20 @@ export default function QueryPerformanceBarChart() {
           <Legend />
           <Bar dataKey="Centralized" name="Centralized" fill="#8884d8">
             <LabelList
-              dataKey="NumRuns_Centralized"
+              dataKey="Centralized"
               position="top"
-              formatter={(val) => `n=${val}`}
+              formatter={(label) =>
+                typeof label === "number" ? `${label.toFixed(2)} ms` : ""
+              }
             />
           </Bar>
-          <Bar dataKey="DISTRIBUTION" name="DISTRIBUTION" fill="#82ca9d">
+          <Bar dataKey="Distributed" name="Distributed" fill="#82ca9d">
             <LabelList
-              dataKey="NumRuns_DISTRIBUTION"
+              dataKey="Distributed"
               position="top"
-              formatter={(val) => `n=${val}`}
+              formatter={(label) =>
+                typeof label === "number" ? `${label.toFixed(2)} ms` : ""
+              }
             />
           </Bar>
         </BarChart>
