@@ -108,19 +108,13 @@ Hệ thống ban đầu sử dụng cơ sở dữ liệu tập trung, lưu toàn
 - CSDL trung tâm lưu thông tin dùng chung như **KHOA** và **NAMHOC**.
 
 ---
-## 🗺️ 3. Mô hình logic ban đầu
-Hệ thống gồm các bảng chính:
-- **SINHVIEN**, **GIAOVIEN**, **DETAI**, **DETAI_SINHVIEN**, **DIEM**, **HOIDONG**, **TAILIEU**
-- Các bảng dùng chung: **KHOA**, **NAMHOC**
-
----
 
 ## ⚙️ 3. Thiết kế phân tán (Phân mảnh ngang)
 
 ### 3.1. Nguyên tắc phân mảnh
 - Dữ liệu được chia **theo MaKhoa** (mỗi khoa tương ứng một site).  
 - Mỗi site chỉ chứa dữ liệu liên quan đến khoa của mình.  
-- Các bảng dùng chung (`KHOA`, `NAMHOC`) được lưu tập trung tại **DBMain** và có thể được truy cập qua Linked Server.
+- Các bảng dùng chung (`KHOA`, `NAMHOC`,`Users`) được lưu tập trung tại **DBMain** và có thể được truy cập qua Linked Server.
 
 ---
 
@@ -273,7 +267,9 @@ Biểu đồ dưới đây thể hiện **so sánh hiệu suất truy vấn trun
   - Truy vấn toàn cục (global) chịu ảnh hưởng bởi **network overhead**.  
 
 ---
-
+## Chú tích:
+`config/DBTT`: Chứa các file code về table,proc,trigger,func theo dạng CSDL tập trung
+`config/DBPT`: Chứa các file code về table,proc,trigger,func theo dạng CSDL phân tán file có chữ M có nghĩa là nó nằm ơ DB Main còn có chữ K là nó đc nằm ở DB Khoa
 
 
 
