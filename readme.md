@@ -137,6 +137,7 @@ Hệ thống gồm các bảng chính:
 | TAILIEU | Ngang | Theo MaDT thuộc site | Server theo khoa |
 | KHOA | Tập trung | Toàn bộ | DBMain |
 | NAMHOC | Tập trung | Toàn bộ | DBMain |
+| Users | Tập trung | Toàn bộ | DBMain |
 
 ---
 
